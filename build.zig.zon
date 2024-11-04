@@ -1,0 +1,11 @@
+.{
+    .name = "zsdl",
+    .version = "0.4.0-dev",
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "README.md",
+        "LICENSE",
+    },
+}
