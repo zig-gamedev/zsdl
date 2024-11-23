@@ -6,6 +6,7 @@ pub fn build(b: *std.Build) void {
     const zsdl2_module = b.addModule("zsdl2", .{
         .root_source_file = b.path("src/sdl2.zig"),
     });
+    zsdl2_module.addIncludePath(b.path("libs/sdl2/include/"));
 
     _ = b.addModule("zsdl2_ttf", .{
         .root_source_file = b.path("src/sdl2_ttf.zig"),
