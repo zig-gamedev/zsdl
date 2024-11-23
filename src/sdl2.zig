@@ -64,6 +64,7 @@ extern fn SDL_Quit() void;
 // Configuration Variables
 //
 //--------------------------------------------------------------------------------------------------
+pub const hint_video_external_context = "SDL_VIDEO_EXTERNAL_CONTEXT";
 pub const hint_windows_dpi_awareness = "SDL_WINDOWS_DPI_AWARENESS";
 
 /// Set a hint with normal priority.
