@@ -1588,6 +1588,19 @@ pub const MouseWheelEvent = extern struct {
     preciseY: f32,
 };
 
+pub const TouchFingerEvent = extern struct {
+    type: EventType,
+    timestamp: u32,
+    touch_id: TouchId,
+    finger_id: FingerId,
+    x: f32,
+    y: f32,
+    dx: f32,
+    dy: f32,
+    pressure: f32,
+    window_id: WindowId,
+};
+
 pub const QuitEvent = extern struct {
     type: EventType,
     timestamp: u32,
@@ -1619,6 +1632,7 @@ pub const Event = extern union {
     button: MouseButtonEvent,
     wheel: MouseWheelEvent,
     controllerdevice: ControllerDeviceEvent,
+    touch: TouchFingerEvent,
     quit: QuitEvent,
     drop: DropEvent,
 
@@ -1770,6 +1784,15 @@ pub fn gameControllerGetButton(controller: *GameController, button: GameControll
     return (SDL_GameControllerGetButton(controller, @intFromEnum(button)) != 0);
 }
 extern fn SDL_GameControllerGetButton(controller: *GameController, button: c_int) u8;
+
+//--------------------------------------------------------------------------------------------------
+//
+// Touch
+//
+//--------------------------------------------------------------------------------------------------
+
+pub const TouchId = i64;
+pub const FingerId = i64;
 
 //--------------------------------------------------------------------------------------------------
 //
