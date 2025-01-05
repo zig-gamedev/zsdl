@@ -233,15 +233,15 @@ extern fn SDL_GetWindowDisplayMode(window: *Window, mode: *DisplayMode) i32;
 
 /// Get the position of a window.
 pub fn windowGetPosition(window: *Window, w: ?*i32, h: ?*i32) Error!void {
-    if (SDL_GetWindowPosition(window, w, h) < 0) return makeError();
+    SDL_GetWindowPosition(window, w, h);
 }
-extern fn SDL_GetWindowPosition(window: *Window, x: ?*i32, y: ?*i32) i32;
+extern fn SDL_GetWindowPosition(window: *Window, x: ?*i32, y: ?*i32) void;
 
 /// Get the size of a window's client area.
 pub fn windowGetSize(window: *Window, w: ?*i32, h: ?*i32) Error!void {
-    if (SDL_GetWindowSize(window, w, h) < 0) return makeError();
+    SDL_GetWindowSize(window, w, h);
 }
-extern fn SDL_GetWindowSize(window: *Window, w: ?*i32, h: ?*i32) i32;
+extern fn SDL_GetWindowSize(window: *Window, w: ?*i32, h: ?*i32) void;
 
 /// Set the title of a window.
 pub fn windowSetTitle(window: *Window, title: [:0]const u8) void {
