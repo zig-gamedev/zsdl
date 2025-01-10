@@ -43,7 +43,7 @@ pub const InitFlags = packed struct(u32) {
 };
 
 pub fn init(flags: InitFlags) Error!void {
-    if (SDL_Init(flags) < 0) return makeError();
+    if (SDL_Init(flags) == False) return makeError();
 }
 extern fn SDL_Init(flags: InitFlags) i32;
 
@@ -194,18 +194,18 @@ pub const Window = opaque {
 
     pub fn getFullscreenMode(window: *Window) Error!DisplayMode {
         var mode: DisplayMode = undefined;
-        if (SDL_GetWindowFullscreenMode(window, &mode) < 0) return makeError();
+        if (SDL_GetWindowFullscreenMode(window, &mode) == False) return makeError();
         return mode;
     }
     extern fn SDL_GetWindowFullscreenMode(window: *Window, mode: *DisplayMode) i32;
 
     pub fn getPosition(window: *Window, w: ?*i32, h: ?*i32) Error!void {
-        if (SDL_GetWindowPosition(window, w, h) < 0) return makeError();
+        if (SDL_GetWindowPosition(window, w, h) == False) return makeError();
     }
     extern fn SDL_GetWindowPosition(window: *Window, x: ?*i32, y: ?*i32) i32;
 
     pub fn getSize(window: *Window, w: ?*i32, h: ?*i32) Error!void {
-        if (SDL_GetWindowSize(window, w, h) < 0) return makeError();
+        if (SDL_GetWindowSize(window, w, h) == False) return makeError();
     }
     extern fn SDL_GetWindowSize(window: *Window, w: ?*i32, h: ?*i32) i32;
 
@@ -290,31 +290,31 @@ pub const gl = struct {
     };
 
     pub fn setAttribute(attr: Attr, value: i32) Error!void {
-        if (SDL_GL_SetAttribute(attr, value) < 0) return makeError();
+        if (SDL_GL_SetAttribute(attr, value) == False) return makeError();
     }
     extern fn SDL_GL_SetAttribute(attr: Attr, value: c_int) c_int;
 
     pub fn getAttribute(attr: Attr) Error!i32 {
         var value: i32 = undefined;
-        if (SDL_GL_GetAttribute(attr, &value) < 0) return makeError();
+        if (SDL_GL_GetAttribute(attr, &value) == False) return makeError();
         return value;
     }
     extern fn SDL_GL_GetAttribute(attr: Attr, value: *c_int) c_int;
 
     pub fn setSwapInterval(interval: i32) Error!void {
-        if (SDL_GL_SetSwapInterval(interval) < 0) return makeError();
+        if (SDL_GL_SetSwapInterval(interval) == False) return makeError();
     }
     extern fn SDL_GL_SetSwapInterval(interval: c_int) c_int;
 
     pub fn getSwapInterval() Error!i32 {
         var interval: c_int = undefined;
-        if (SDL_GL_GetSwapInterval(&interval) < 0) return makeError();
+        if (SDL_GL_GetSwapInterval(&interval) == False) return makeError();
         return @intCast(interval);
     }
     extern fn SDL_GL_GetSwapInterval(interval: *c_int) c_int;
 
     pub fn swapWindow(window: *Window) Error!void {
-        if (SDL_GL_SwapWindow(window) < 0) return makeError();
+        if (SDL_GL_SwapWindow(window) == False) return makeError();
     }
     extern fn SDL_GL_SwapWindow(window: *Window) c_int;
 
@@ -334,7 +334,7 @@ pub const gl = struct {
     extern fn SDL_GL_CreateContext(window: *Window) ?Context;
 
     pub fn makeCurrent(window: *Window, context: Context) Error!void {
-        if (SDL_GL_MakeCurrent(window, context) < 0) return makeError();
+        if (SDL_GL_MakeCurrent(window, context) == False) return makeError();
     }
     extern fn SDL_GL_MakeCurrent(window: *Window, context: Context) c_int;
 
@@ -366,7 +366,7 @@ pub const Texture = opaque {
         w: ?*i32,
         h: ?*i32,
     ) !void {
-        if (SDL_QueryTexture(texture, format, access, w, h) != 0) {
+        if (SDL_QueryTexture(texture, format, access, w, h) == False) {
             return makeError();
         }
     }
@@ -384,7 +384,7 @@ pub const Texture = opaque {
     } {
         var pixels: *anyopaque = undefined;
         var pitch: i32 = undefined;
-        if (SDL_LockTexture(texture, rect, &pixels, &pitch) != 0) {
+        if (SDL_LockTexture(texture, rect, &pixels, &pitch) == False) {
             return makeError();
         }
         return .{
@@ -467,7 +467,7 @@ pub const Renderer = opaque {
     extern fn SDL_DestroyRenderer(r: *Renderer) void;
 
     pub fn clear(r: *Renderer) !void {
-        if (SDL_RenderClear(r) < 0) return makeError();
+        if (SDL_RenderClear(r) == False) return makeError();
     }
     extern fn SDL_RenderClear(r: *Renderer) i32;
 
@@ -480,7 +480,7 @@ pub const Renderer = opaque {
         src: ?*const Rect,
         dst: ?*const Rect,
     ) Error!void {
-        if (SDL_RenderTexture(r, tex, src, dst) < 0) return makeError();
+        if (SDL_RenderTexture(r, tex, src, dst) == False) return makeError();
     }
     extern fn SDL_RenderTexture(
         r: *Renderer,
@@ -498,7 +498,7 @@ pub const Renderer = opaque {
         center: ?*const Point,
         flip: RendererFlip,
     ) Error!void {
-        if (SDL_RenderTextureRotated(r, tex, src, dst, angle, center, flip) < 0) return makeError();
+        if (SDL_RenderTextureRotated(r, tex, src, dst, angle, center, flip) == False) return makeError();
     }
     extern fn SDL_RenderTextureRotated(
         r: *Renderer,
@@ -511,27 +511,27 @@ pub const Renderer = opaque {
     ) c_int;
 
     pub fn setScale(renderer: *Renderer, x: f32, y: f32) Error!void {
-        if (SDL_SetRenderScale(renderer, x, y) > 0) return makeError();
+        if (SDL_SetRenderScale(renderer, x, y) == False) return makeError();
     }
     extern fn SDL_SetRenderScale(renderer: *Renderer, scaleX: f32, scaleY: f32) c_int;
 
     pub fn line(renderer: *Renderer, x0: f32, y0: f32, x1: f32, y1: f32) Error!void {
-        if (SDL_RenderLine(renderer, x0, y0, x1, y1) < 0) return makeError();
+        if (SDL_RenderLine(renderer, x0, y0, x1, y1) == False) return makeError();
     }
     extern fn SDL_RenderLine(renderer: *Renderer, x1: f32, y1: f32, x2: f32, y2: f32) c_int;
 
     pub fn point(renderer: *Renderer, x: f32, y: f32) Error!void {
-        if (SDL_RenderPoint(renderer, x, y) < 0) return makeError();
+        if (SDL_RenderPoint(renderer, x, y) == False) return makeError();
     }
     extern fn SDL_RenderPoint(renderer: *Renderer, x: f32, y: f32) c_int;
 
     pub fn fillRect(renderer: *Renderer, _rect: Rect) Error!void {
-        if (SDL_RenderFillRect(renderer, &_rect) < 0) return makeError();
+        if (SDL_RenderFillRect(renderer, &_rect) == False) return makeError();
     }
     extern fn SDL_RenderFillRect(renderer: ?*Renderer, rect: *const Rect) c_int;
 
     pub fn rect(renderer: *Renderer, _rect: Rect) Error!void {
-        if (SDL_RenderRect(renderer, &_rect) < 0) return makeError();
+        if (SDL_RenderRect(renderer, &_rect) == False) return makeError();
     }
     extern fn SDL_RenderRect(renderer: *Renderer, rect: *const Rect) c_int;
 
@@ -548,7 +548,7 @@ pub const Renderer = opaque {
             @as(i32, @intCast(vertices.len)),
             if (indices) |idx| @as([*]const i32, @ptrCast(idx.ptr)) else null,
             if (indices) |idx| @as(i32, @intCast(idx.len)) else 0,
-        ) < 0)
+        ) == False)
             return makeError();
     }
     extern fn SDL_RenderGeometry(
@@ -561,7 +561,7 @@ pub const Renderer = opaque {
     ) c_int;
 
     pub fn setDrawColor(renderer: *Renderer, color: Color) Error!void {
-        if (SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a) < 0) {
+        if (SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a) == False) {
             return makeError();
         }
     }
@@ -569,7 +569,7 @@ pub const Renderer = opaque {
 
     pub fn getDrawColor(renderer: *const Renderer) Error!Color {
         var color: Color = undefined;
-        if (SDL_GetRenderDrawColor(renderer, &color.r, &color.g, &color.b, &color.a) < 0) {
+        if (SDL_GetRenderDrawColor(renderer, &color.r, &color.g, &color.b, &color.a) == False) {
             return makeError();
         }
         return color;
@@ -578,20 +578,20 @@ pub const Renderer = opaque {
 
     pub fn getDrawBlendMode(r: *const Renderer) Error!BlendMode {
         var blend_mode: BlendMode = undefined;
-        if (SDL_GetRenderDrawBlendMode(r, &blend_mode) < 0) return makeError();
+        if (SDL_GetRenderDrawBlendMode(r, &blend_mode) == False) return makeError();
         return blend_mode;
     }
     extern fn SDL_GetRenderDrawBlendMode(renderer: *const Renderer, blendMode: *BlendMode) c_int;
 
     pub fn setDrawBlendMode(r: *Renderer, blend_mode: BlendMode) Error!void {
-        if (SDL_SetRenderDrawBlendMode(r, blend_mode) < 0) return makeError();
+        if (SDL_SetRenderDrawBlendMode(r, blend_mode) == False) return makeError();
     }
     extern fn SDL_SetRenderDrawBlendMode(renderer: *Renderer, blendMode: BlendMode) c_int;
 
     pub fn getCurrentOutputSize(r: *const Renderer) Error!struct { w: i32, h: i32 } {
         var w: i32 = undefined;
         var h: i32 = undefined;
-        if (SDL_GetCurrentRenderOutputSize(r, &w, &h) < 0) return makeError();
+        if (SDL_GetCurrentRenderOutputSize(r, &w, &h) == False) return makeError();
         return .{ .w = w, .h = h };
     }
     extern fn SDL_GetCurrentRenderOutputSize(renderer: *const Renderer, w: *i32, h: *i32) c_int;
@@ -620,7 +620,7 @@ pub const Renderer = opaque {
 
     pub fn getInfo(r: *const Renderer) Error!RendererInfo {
         var result: RendererInfo = undefined;
-        if (SDL_GetRendererInfo(r, &result) < 0) return makeError();
+        if (SDL_GetRendererInfo(r, &result) == False) return makeError();
         return result;
     }
     extern fn SDL_GetRendererInfo(renderer: *const Renderer, info: *RendererInfo) c_int;
@@ -631,13 +631,13 @@ pub const Renderer = opaque {
     pub extern fn SDL_RenderClipEnabled(renderer: *const Renderer) Bool;
 
     pub fn setClipRect(r: *Renderer, clip_rect: ?*const Rect) Error!void {
-        if (SDL_SetRenderClipRect(r, clip_rect) < 0) return makeError();
+        if (SDL_SetRenderClipRect(r, clip_rect) == False) return makeError();
     }
     extern fn SDL_SetRenderClipRect(renderer: *Renderer, rect: ?*const Rect) c_int;
 
     pub fn getClipRect(r: *Renderer) Error!Rect {
         var clip_rect: Rect = undefined;
-        if (SDL_GetRenderClipRect(r, &clip_rect) != 0) return makeError();
+        if (SDL_GetRenderClipRect(r, &clip_rect) == False) return makeError();
         return clip_rect;
     }
     extern fn SDL_GetRenderClipRect(renderer: *Renderer, rect: ?*Rect) c_int;
@@ -649,7 +649,7 @@ pub const Renderer = opaque {
         mode: *RendererLogicalPresentationMode,
         scale_mode: *ScaleMode,
     ) Error!void {
-        if (SDL_GetRenderLogicalPresentation(renderer, w, h, mode, scale_mode) != 0) {
+        if (SDL_GetRenderLogicalPresentation(renderer, w, h, mode, scale_mode) == False) {
             return makeError();
         }
     }
@@ -668,7 +668,7 @@ pub const Renderer = opaque {
         mode: RendererLogicalPresentationMode,
         scale_mode: ScaleMode,
     ) Error!void {
-        if (SDL_SetRenderLogicalPresentation(renderer, w, h, mode, scale_mode) != 0) {
+        if (SDL_SetRenderLogicalPresentation(renderer, w, h, mode, scale_mode) == False) {
             return makeError();
         }
     }
@@ -682,20 +682,20 @@ pub const Renderer = opaque {
 
     pub fn getViewport(renderer: *const Renderer) Error!Rect {
         var viewport: Rect = undefined;
-        if (SDL_GetRenderViewport(renderer, &viewport) != 0) return makeError();
+        if (SDL_GetRenderViewport(renderer, &viewport) == False) return makeError();
         return viewport;
     }
     extern fn SDL_GetRenderViewport(renderer: *const Renderer, rect: *Rect) c_int;
 
     pub fn setViewport(renderer: *Renderer, maybe_rect: ?*const Rect) Error!void {
-        if (SDL_SetRenderViewport(renderer, maybe_rect) != 0) {
+        if (SDL_SetRenderViewport(renderer, maybe_rect) == False) {
             return makeError();
         }
     }
     extern fn SDL_SetRenderViewport(renderer: *Renderer, rect: ?*const Rect) c_int;
 
     pub fn setTarget(r: *Renderer, tex: ?*const Texture) Error!void {
-        if (SDL_SetRenderTarget(r, tex) < 0) return makeError();
+        if (SDL_SetRenderTarget(r, tex) == False) return makeError();
     }
     extern fn SDL_SetRenderTarget(renderer: *Renderer, texture: ?*const Texture) c_int;
 
@@ -706,7 +706,7 @@ pub const Renderer = opaque {
         pixels: [*]u8,
         pitch: i32,
     ) Error!void {
-        if (SDL_RenderReadPixels(renderer, _rect, format, pixels, pitch) < 0) {
+        if (SDL_RenderReadPixels(renderer, _rect, format, pixels, pitch) == False) {
             return makeError();
         }
     }
@@ -734,7 +734,7 @@ pub fn createWindowAndRenderer(
         window_flags,
         @ptrCast(window),
         @ptrCast(renderer),
-    ) != 0) return makeError();
+    ) == False) return makeError();
 }
 extern fn SDL_CreateWindowAndRenderer(
     title: ?[*:0]const u8,
@@ -1093,7 +1093,7 @@ pub const vk = struct {
     pub const Instance = enum(usize) { null_handle = 0, _ };
 
     pub fn loadLibrary(path: ?[*:0]const u8) Error!void {
-        if (SDL_Vulkan_LoadLibrary(path) < 0) return makeError();
+        if (SDL_Vulkan_LoadLibrary(path) == False) return makeError();
     }
     extern fn SDL_Vulkan_LoadLibrary(path: ?[*]const u8) i32;
 
@@ -1398,7 +1398,7 @@ extern fn SDL_PollEvent(event: ?*Event) i32;
 ///         false if event was filtered out
 pub fn pushEvent(event: *Event) Error!bool {
     const status = SDL_PushEvent(event);
-    if (status < 0) return makeError();
+    if (status == False) return makeError();
     return status == 1;
 }
 extern fn SDL_PushEvent(event: *Event) c_int;
@@ -1447,12 +1447,12 @@ pub const getMouseState = SDL_GetMouseState;
 extern fn SDL_GetMouseState(x: ?*f32, y: ?*f32) u32;
 
 pub fn showCursor() Error!void {
-    if (SDL_ShowCursor() < 0) return makeError();
+    if (SDL_ShowCursor() == False) return makeError();
 }
 extern fn SDL_ShowCursor() c_int;
 
 pub fn hideCursor() Error!void {
-    if (SDL_HideCursor() < 0) return makeError();
+    if (SDL_HideCursor() == False) return makeError();
 }
 extern fn SDL_HideCursor() c_int;
 
@@ -1520,7 +1520,7 @@ pub const Gamepad = opaque {
     extern fn SDL_GetGamepadAxis(*Gamepad, axis: c_int) i16;
 
     pub fn getButton(controller: *Gamepad, button: Button) bool {
-        return (SDL_GetGamepadButton(controller, @intFromEnum(button)) != 0);
+        return (SDL_GetGamepadButton(controller, @intFromEnum(button)) == False);
     }
     extern fn SDL_GetGamepadButton(controller: *Gamepad, button: c_int) u8;
 };
@@ -1645,7 +1645,7 @@ pub fn queueAudio(
     device: AudioDeviceId,
     data: []const SampleType,
 ) Error!void {
-    if (SDL_QueueAudio(device, data.ptr, @sizeOf(SampleType) * @as(u32, @intCast(data.len))) != 0) {
+    if (SDL_QueueAudio(device, data.ptr, @sizeOf(SampleType) * @as(u32, @intCast(data.len))) == False) {
         return makeError();
     }
 }
@@ -1773,7 +1773,7 @@ pub fn showSimpleMessageBox(
     message: [:0]const u8,
     window: ?*Window,
 ) Error!void {
-    if (SDL_ShowSimpleMessageBox(flags, title, message, window) < 0) return makeError();
+    if (SDL_ShowSimpleMessageBox(flags, title, message, window) == False) return makeError();
 }
 extern fn SDL_ShowSimpleMessageBox(
     flags: MessageBoxFlags,
