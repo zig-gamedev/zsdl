@@ -26,8 +26,8 @@
             .lazy = true,
         },
         .@"sdl3-prebuilt-macos" = .{
-            .url = "https://github.com/zig-gamedev/sdl3-prebuilt-macos/archive/a15a00dd4513dce3b8c9b35c639cfce61c341f17.tar.gz",
-            .hash = "1220f4a00b613878775ad71299fff1964f3c6e7e21add7a9e82f5f25897c7ac2368e",
+            .url = "https://github.com/zig-gamedev/sdl3-prebuilt-macos/archive/4a64f811962c15c436180b9fe3f67b0a5e7b819a.tar.gz",
+            .hash = "12205164996fc2502a0f4e06e6a859409b434c169b3e0aa370b9db5ee9c5a7b83851",
             .lazy = true,
         },
         .@"sdl3-prebuilt-x86_64-windows-gnu" = .{
@@ -36,8 +36,8 @@
             .lazy = true,
         },
         .@"sdl3-prebuilt-x86_64-linux-gnu" = .{
-            .url = "https://github.com/zig-gamedev/sdl3-prebuilt-x86_64-linux-gnu/archive/b18f66425b185dff18ac29d0b4bd998c38fbc340.tar.gz",
-            .hash = "1220fec3b4e9e2740ef5875f204bbd8cf71c48e2eaf50e9795b1be3b58efd5118550",
+            .url = "https://github.com/zig-gamedev/sdl3-prebuilt-x86_64-linux-gnu/archive/ec03b72a851a6281ee25e9f44eb4ba2dae017295.tar.gz",
+            .hash = "12201d10e23eae4757cf50b246bcac23ec0ea2e61e1f1102a924cce9adbbba59e8c9",
             .lazy = true,
         },
     },
