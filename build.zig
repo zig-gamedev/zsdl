@@ -333,6 +333,8 @@ fn addTests(
         .target = target,
         .optimize = optimize,
     });
+    // TODO(hazeycode): Using prebuilt libs for now. Compile from source in future.
+    prebuilt.addLibraryPathsTo(tests);
     b.installArtifact(tests);
     test_step.dependOn(&b.addRunArtifact(tests).step);
     return tests;
