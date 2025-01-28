@@ -64,6 +64,19 @@ pub fn build(b: *std.Build) void {
         const zsdl3_tests = addTests(test_step, target, optimize, "zsdl3-tests", "src/sdl3.zig");
         link_SDL3(zsdl3_tests);
     }
+
+    if (prebuilt.install_SDL2(b, target.result, .bin)) |install_sdl2_step| {
+        b.getInstallStep().dependOn(install_sdl2_step);
+    }
+    if (prebuilt.install_SDL2_ttf(b, target.result, .bin)) |install_sdl2_ttf_step| {
+        b.getInstallStep().dependOn(install_sdl2_ttf_step);
+    }
+    if (prebuilt.install_SDL2_image(b, target.result, .bin)) |install_sdl2_image_step| {
+        b.getInstallStep().dependOn(install_sdl2_image_step);
+    }
+    if (prebuilt.install_SDL3(b, target.result, .bin)) |install_sdl3_step| {
+        b.getInstallStep().dependOn(install_sdl3_step);
+    }
 }
 
 pub fn link_SDL2(compile_step: *std.Build.Step.Compile) void {
@@ -319,6 +332,48 @@ pub const prebuilt = struct {
                         .source_dir = sdl2_prebuilt.path("Frameworks/SDL2_image.framework"),
                         .install_dir = install_dir,
                         .install_subdir = "SDL2_image.framework",
+                    }).step;
+                }
+            },
+            else => {},
+        }
+        return null;
+    }
+
+    pub fn install_SDL3(
+        b: *std.Build,
+        target: std.Target,
+        install_dir: std.Build.InstallDir,
+    ) ?*std.Build.Step {
+        switch (target.os.tag) {
+            .windows => {
+                if (target.cpu.arch.isX86()) {
+                    if (b.lazyDependency("sdl3-prebuilt-x86_64-windows-gnu", .{})) |sdl3_prebuilt| {
+                        return &b.addInstallFileWithDir(
+                            sdl3_prebuilt.path("bin/SDL3.dll"),
+                            install_dir,
+                            "SDL2.dll",
+                        ).step;
+                    }
+                }
+            },
+            .linux => {
+                if (target.cpu.arch.isX86()) {
+                    if (b.lazyDependency("sdl3-prebuilt-x86_64-linux-gnu", .{})) |sdl3_prebuilt| {
+                        return &b.addInstallFileWithDir(
+                            sdl3_prebuilt.path("lib/libSDL3.so"),
+                            install_dir,
+                            "libSDL2.so",
+                        ).step;
+                    }
+                }
+            },
+            .macos => {
+                if (b.lazyDependency("sdl3-prebuilt-macos", .{})) |sdl3_prebuilt| {
+                    return &b.addInstallDirectory(.{
+                        .source_dir = sdl3_prebuilt.path("Frameworks/SDL3.framework"),
+                        .install_dir = install_dir,
+                        .install_subdir = "SDL3.framework",
                     }).step;
                 }
             },
