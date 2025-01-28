@@ -31,8 +31,8 @@
             .lazy = true,
         },
         .@"sdl3-prebuilt-x86_64-windows-gnu" = .{
-            .url = "https://github.com/zig-gamedev/sdl3-prebuilt-x86_64-windows-gnu/archive/28c511e284cfacd7d34f1dc654bdda706751e736.tar.gz",
-            .hash = "122072c3e14e215c022217ee6bfb4169a04436ab3806bca88d5de50d7a9cc2ebb4fd",
+            .url = "https://github.com/zig-gamedev/sdl3-prebuilt-x86_64-windows-gnu/archive/bd506c7cf80c4bb4876a169f77ecaa0f12824c5.tar.gz",
+            .hash = "122073ccc1be25223aed7eb9590e81eed67835901cd18ebf2314eb9cfe5bbef595cf",
             .lazy = true,
         },
         .@"sdl3-prebuilt-x86_64-linux-gnu" = .{
