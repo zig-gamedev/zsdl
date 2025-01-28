@@ -361,25 +361,6 @@ pub const Texture = opaque {
     }
     extern fn SDL_DestroyTexture(texture: ?*Texture) void;
 
-    pub fn query(
-        texture: *Texture,
-        format: ?*PixelFormatEnum,
-        access: ?*TextureAccess,
-        w: ?*i32,
-        h: ?*i32,
-    ) !void {
-        if (SDL_QueryTexture(texture, format, access, w, h) == False) {
-            return makeError();
-        }
-    }
-    extern fn SDL_QueryTexture(
-        texture: *Texture,
-        format: ?*PixelFormatEnum,
-        access: ?*TextureAccess,
-        w: ?*c_int,
-        h: ?*c_int,
-    ) c_int;
-
     pub fn lock(texture: *Texture, rect: ?*Rect) !struct {
         pixels: [*]u8,
         pitch: i32,
@@ -433,15 +414,6 @@ pub const RendererFlip = enum(c_int) {
     horizontal = 0x0001,
     vertical = 0x0002,
     both = 0x0003,
-};
-
-pub const RendererInfo = extern struct {
-    name: [*c]const u8,
-    flags: u32,
-    num_texture_formats: u32,
-    texture_formats: [16]u32,
-    max_texture_width: i32,
-    max_texture_height: i32,
 };
 
 pub const RendererLogicalPresentationMode = enum(c_int) {
@@ -619,13 +591,6 @@ pub const Renderer = opaque {
         return SDL_CreateTextureFromSurface(renderer, surface) orelse makeError();
     }
     extern fn SDL_CreateTextureFromSurface(renderer: *Renderer, surface: *Surface) ?*Texture;
-
-    pub fn getInfo(r: *const Renderer) Error!RendererInfo {
-        var result: RendererInfo = undefined;
-        if (SDL_GetRendererInfo(r, &result) == False) return makeError();
-        return result;
-    }
-    extern fn SDL_GetRendererInfo(renderer: *const Renderer, info: *RendererInfo) c_int;
 
     pub fn clipEnabled(renderer: *const Renderer) bool {
         return SDL_RenderClipEnabled(renderer) == True;
