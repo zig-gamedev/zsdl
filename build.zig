@@ -174,6 +174,9 @@ pub const prebuilt = struct {
                     if (b.lazyDependency("sdl2-prebuilt-x86_64-windows-gnu", .{})) |sdl2_prebuilt| {
                         compile_step.addLibraryPath(sdl2_prebuilt.path("lib"));
                     }
+                    if (b.lazyDependency("sdl3-prebuilt-x86_64-windows-gnu", .{})) |sdl3_prebuilt| {
+                        compile_step.addLibraryPath(sdl3_prebuilt.path("lib"));
+                    }
                 }
             },
             .linux => {
@@ -181,11 +184,17 @@ pub const prebuilt = struct {
                     if (b.lazyDependency("sdl2-prebuilt-x86_64-linux-gnu", .{})) |sdl2_prebuilt| {
                         compile_step.addLibraryPath(sdl2_prebuilt.path("lib"));
                     }
+                    if (b.lazyDependency("sdl3-prebuilt-x86_64-linux-gnu", .{})) |sdl3_prebuilt| {
+                        compile_step.addLibraryPath(sdl3_prebuilt.path("lib"));
+                    }
                 }
             },
             .macos => {
                 if (b.lazyDependency("sdl2-prebuilt-macos", .{})) |sdl2_prebuilt| {
                     compile_step.addFrameworkPath(sdl2_prebuilt.path("Frameworks"));
+                }
+                if (b.lazyDependency("sdl3-prebuilt-macos", .{})) |sdl3_prebuilt| {
+                    compile_step.addFrameworkPath(sdl3_prebuilt.path("Frameworks"));
                 }
             },
             else => {},

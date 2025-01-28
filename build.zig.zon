@@ -25,5 +25,21 @@
             .hash = "12200ecb91c0596d0356ff39d573af83abcd44fecb27943589f11c2cd172763fea39",
             .lazy = true,
         },
+        .@"sdl3-prebuilt-macos" = .{
+            .url = "https://github.com/zig-gamedev/sdl3-prebuilt-macos/archive/a15a00dd4513dce3b8c9b35c639cfce61c341f17.tar.gz",
+            .hash = "1220f4a00b613878775ad71299fff1964f3c6e7e21add7a9e82f5f25897c7ac2368e",
+            .lazy = true,
+        },
+        // TODO
+        // .@"sdl3-prebuilt-x86_64-windows-gnu" = .{
+        //     .url = "",
+        //     .hash = "",
+        //     .lazy = true,
+        // },
+        .@"sdl3-prebuilt-x86_64-linux-gnu" = .{
+            .url = "https://github.com/zig-gamedev/sdl3-prebuilt-x86_64-linux-gnu/archive/b18f66425b185dff18ac29d0b4bd998c38fbc340.tar.gz",
+            .hash = "1220fec3b4e9e2740ef5875f204bbd8cf71c48e2eaf50e9795b1be3b58efd5118550",
+            .lazy = true,
+        },
     },
 }
