@@ -1,8 +1,8 @@
 const std = @import("std");
 const sdl = @import("zsdl2");
 
-comptime {
-    _ = std.testing.refAllDecls(@This());
+test {
+    _ = std.testing.refAllDeclsRecursive(@This());
 }
 
 /// Load an image from a filesystem path into a software surface.

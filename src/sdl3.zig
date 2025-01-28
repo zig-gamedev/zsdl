@@ -2,8 +2,10 @@ const builtin = @import("builtin");
 const std = @import("std");
 const assert = std.debug.assert;
 
-comptime {
-    _ = std.testing.refAllDecls(@This());
+const sdl3 = @This();
+
+test {
+    _ = std.testing.refAllDeclsRecursive(sdl3);
 }
 
 //--------------------------------------------------------------------------------------------------

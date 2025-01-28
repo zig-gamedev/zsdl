@@ -3,6 +3,9 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 pub fn build(b: *std.Build) void {
+    const optimize = b.standardOptimizeOption(.{});
+    const target = b.standardTargetOptions(.{});
+
     const zsdl2_module = b.addModule("zsdl2", .{
         .root_source_file = b.path("src/sdl2.zig"),
     });
@@ -25,6 +28,42 @@ pub fn build(b: *std.Build) void {
     _ = b.addModule("zsdl3", .{
         .root_source_file = b.path("src/sdl3.zig"),
     });
+
+    const test_step = b.step("test", "Run bindings tests");
+    { // Test SDL2 bindings
+        const zsdl2_tests = addTests(test_step, target, optimize, "zsdl2-tests", "src/sdl2.zig");
+        link_SDL2(zsdl2_tests);
+    }
+    { // Test SDL2_ttf bindings
+        const zsdl2_ttf_tests = addTestsAux(
+            test_step,
+            target,
+            optimize,
+            "zsdl2_ttf-tests",
+            "src/sdl2_ttf.zig",
+            "zsdl2",
+            zsdl2_module,
+        );
+        link_SDL2(zsdl2_ttf_tests);
+        link_SDL2_ttf(zsdl2_ttf_tests);
+    }
+    { // Test SDL2_image bindings
+        const zsdl2_image_tests = addTestsAux(
+            test_step,
+            target,
+            optimize,
+            "zsdl2_ttf-image",
+            "src/sdl2_image.zig",
+            "zsdl2",
+            zsdl2_module,
+        );
+        link_SDL2(zsdl2_image_tests);
+        link_SDL2_image(zsdl2_image_tests);
+    }
+    { // Test SDL3 bindings
+        const zsdl3_tests = addTests(test_step, target, optimize, "zsdl3-tests", "src/sdl3.zig");
+        link_SDL3(zsdl3_tests);
+    }
 }
 
 pub fn link_SDL2(compile_step: *std.Build.Step.Compile) void {
@@ -279,3 +318,36 @@ pub const prebuilt = struct {
         return null;
     }
 };
+
+fn addTests(
+    test_step: *std.Build.Step,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    name: []const u8,
+    root_src_path: []const u8,
+) *std.Build.Step.Compile {
+    const b = test_step.owner;
+    const tests = b.addTest(.{
+        .name = name,
+        .root_source_file = b.path(root_src_path),
+        .target = target,
+        .optimize = optimize,
+    });
+    b.installArtifact(tests);
+    test_step.dependOn(&b.addRunArtifact(tests).step);
+    return tests;
+}
+
+fn addTestsAux(
+    test_step: *std.Build.Step,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    name: []const u8,
+    root_src_path: []const u8,
+    parent_module_name: []const u8,
+    parent_module: *std.Build.Module,
+) *std.Build.Step.Compile {
+    const tests = addTests(test_step, target, optimize, name, root_src_path);
+    tests.root_module.addImport(parent_module_name, parent_module);
+    return tests;
+}
