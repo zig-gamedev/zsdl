@@ -1015,7 +1015,7 @@ pub const vk = struct {
     pub fn getInstanceExtensions(count: *i32, maybe_names: ?[*][*:0]u8) bool {
         return SDL_Vulkan_GetInstanceExtensions(count, maybe_names);
     }
-    extern fn SDL_Vulkan_GetInstanceExtensions(count: *i32, names: ?[*][*]u8) bool;
+    extern fn SDL_Vulkan_GetInstanceExtensions(count: *i32, names: ?[*][*:0]u8) bool;
 
     pub fn createSurface(window: *Window, instance: Instance, surface: *anyopaque) bool {
         return SDL_Vulkan_CreateSurface(window, instance, surface);
