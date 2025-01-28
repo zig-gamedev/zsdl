@@ -175,7 +175,7 @@ pub const prebuilt = struct {
                         compile_step.addLibraryPath(sdl2_prebuilt.path("lib"));
                     }
                     if (b.lazyDependency("sdl3-prebuilt-x86_64-windows-gnu", .{})) |sdl3_prebuilt| {
-                        compile_step.addLibraryPath(sdl3_prebuilt.path("lib"));
+                        compile_step.addLibraryPath(sdl3_prebuilt.path("bin"));
                     }
                 }
             },
