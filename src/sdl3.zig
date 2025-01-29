@@ -499,15 +499,15 @@ pub const Renderer = opaque {
     }
     extern fn SDL_RenderPoint(renderer: *Renderer, x: f32, y: f32) c_int;
 
-    pub fn fillRect(renderer: *Renderer, _rect: Rect) Error!void {
+    pub fn fillRect(renderer: *Renderer, _rect: FRect) Error!void {
         if (SDL_RenderFillRect(renderer, &_rect) == False) return makeError();
     }
-    extern fn SDL_RenderFillRect(renderer: ?*Renderer, rect: *const Rect) c_int;
+    extern fn SDL_RenderFillRect(renderer: ?*Renderer, rect: *const FRect) c_int;
 
-    pub fn rect(renderer: *Renderer, _rect: Rect) Error!void {
+    pub fn rect(renderer: *Renderer, _rect: FRect) Error!void {
         if (SDL_RenderRect(renderer, &_rect) == False) return makeError();
     }
-    extern fn SDL_RenderRect(renderer: *Renderer, rect: *const Rect) c_int;
+    extern fn SDL_RenderRect(renderer: *Renderer, rect: *const FRect) c_int;
 
     pub fn drawGeometry(
         r: *Renderer,
