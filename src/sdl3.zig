@@ -1283,7 +1283,7 @@ pub const JoyAxisEvent = extern struct {
     type: EventType,
     reserved: u32,
     timestamp: u64,
-    which: JoystickId,
+    which: Joystick.Id,
     axis: u8,
     // padding
     _: u8,
@@ -1297,7 +1297,7 @@ pub const JoyBallEvent = extern struct {
     type: EventType,
     reserved: u32,
     timestamp: u64,
-    which: JoystickId,
+    which: Joystick.Id,
     ball: u8,
     // padding
     _: u8,
@@ -1311,7 +1311,7 @@ pub const JoyHatEvent = extern struct {
     type: EventType,
     reserved: u32,
     timestamp: u64,
-    which: JoystickId,
+    which: Joystick.Id,
     hat: u8,
     value: u8,
     _: u16, // padding
@@ -1321,7 +1321,7 @@ pub const JoyButtonEvent = extern struct {
     type: EventType,
     reserved: u32,
     timestamp: u64,
-    which: JoystickId,
+    which: Joystick.Id,
     button: u8,
     down: Bool,
     _: u16, // padding
@@ -1331,14 +1331,14 @@ pub const JoyDeviceEvent = extern struct {
     type: EventType,
     reserved: u32,
     timestamp: u64,
-    which: JoystickId,
+    which: Joystick.Id,
 };
 
 pub const JoyBatteryEvent = extern struct {
     type: EventType,
     reserved: u32,
     timestamp: u64,
-    which: JoystickId,
+    which: Joystick.Id,
     state: PowerState,
     percent: c_int,
 };
@@ -1347,7 +1347,7 @@ pub const GamepadAxisEvent = extern struct {
     type: EventType,
     reserved: u32,
     timestamp: u64,
-    which: JoystickId,
+    which: Joystick.Id,
     axis: u8,
     // padding
     _: u8,
@@ -1361,7 +1361,7 @@ pub const GamepadButtonEvent = extern struct {
     type: EventType,
     reserved: u32,
     timestamp: u64,
-    which: JoystickId,
+    which: Joystick.Id,
     button: u8,
     down: Bool,
     _: u16, // padding
@@ -1371,14 +1371,14 @@ pub const GamepadDeviceEvent = extern struct {
     type: EventType,
     reserved: u32,
     timestamp: u64,
-    which: JoystickId,
+    which: Joystick.Id,
 };
 
 pub const GamepadTouchpadEvent = extern struct {
     type: EventType,
     reserved: u32,
     timestamp: u32,
-    which: JoystickId,
+    which: Joystick.Id,
     touchpad: i32,
     finger: i32,
     x: f32,
@@ -1390,7 +1390,7 @@ pub const GamepadSensorEvent = extern struct {
     type: EventType,
     reserved: u32,
     timestamp: u64,
-    which: JoystickId,
+    which: Joystick.Id,
     senor: i32,
     data: [3]f32,
     sensor_timestamp: u64,
@@ -1866,54 +1866,61 @@ pub const PenAxis = enum(c_int) {
 // Joystick Support
 //
 //--------------------------------------------------------------------------------------------------
-pub const Joystick = opaque {};
+pub const Joystick = struct {
+    pub const Id = u32;
 
-pub const JoystickId = u32;
+    pub const JoystickType = enum(c_int) {
+        unknown,
+        gamepad,
+        wheel,
+        arcade_stick,
+        flight_stick,
+        dance_pad,
+        guitar,
+        drum_kit,
+        arcade_pad,
+        throttle,
+    };
 
-pub const JoystickType = enum(c_int) {
-    unknown,
-    gamepad,
-    wheel,
-    arcade_stick,
-    flight_stick,
-    dance_pad,
-    guitar,
-    drum_kit,
-    arcade_pad,
-    throttle,
+    pub const JoystickConnectionState = enum(c_int) {
+        invalid = -1,
+        unknown,
+        wired,
+        wireless,
+    };
+
+    pub const JOYSTICK_AXIS_MAX = 32767;
+    pub const JOYSTICK_AXIS_MIN = -32768;
 };
-
-pub const JoystickConnectionState = enum(c_int) {
-    invalid = -1,
-    unknown,
-    wired,
-    wireless,
-};
-
-pub const JOYSTICK_AXIS_MAX = 32767;
-pub const JOYSTICK_AXIS_MIN = -32768;
 
 // TODO: Joystick API (see SDL_joystick.h)
 
 //--------------------------------------------------------------------------------------------------
 //
-// Gamepad Support
+// Gamepad Support (SDL_gamepad.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const Gamepad = opaque {
-    pub const Axis = enum(c_int) {
-        leftx,
-        lefty,
-        rightx,
-        righty,
-        left_trigger,
-        right_trigger,
+    pub const Type = enum(c_int) {
+        unknown,
+        standard,
+        xbox360,
+        xboxone,
+        ps3,
+        ps4,
+        ps5,
+        nintendo_switch_pro,
+        nintendo_switch_joycon_left,
+        nintendo_switch_joycon_right,
+        nintendo_switch_joycon_pair,
     };
+
     pub const Button = enum(c_int) {
-        a,
-        b,
-        x,
-        y,
+        invalid = -1,
+        south,
+        east,
+        west,
+        north,
         back,
         guide,
         start,
@@ -1926,49 +1933,181 @@ pub const Gamepad = opaque {
         dpad_left,
         dpad_right,
         misc1,
-        paddle1,
-        paddle2,
-        paddle3,
-        paddle4,
+        right_paddle1,
+        left_paddle1,
+        right_paddle2,
+        left_paddle2,
         touchpad,
+        misc2,
+        misc3,
+        misc4,
+        misc5,
+        misc6,
     };
 
-    pub fn open(joystick_index: i32) ?*Gamepad {
-        return SDL_OpenGamepad(joystick_index);
-    }
-    extern fn SDL_OpenGamepad(joystick_index: i32) ?*Gamepad;
+    pub const ButtonLabel = enum(c_int) {
+        unknown,
+        label_a,
+        label_b,
+        label_x,
+        label_y,
+        label_cross,
+        label_circle,
+        label_square,
+        label_triangle,
+    };
 
-    pub fn close(controller: *Gamepad) void {
-        SDL_CloseGamepad(controller);
-    }
-    extern fn SDL_CloseGamepad(joystick: *Gamepad) void;
+    pub const Axis = enum(c_int) {
+        invalid = -1,
+        leftx,
+        lefty,
+        rightx,
+        righty,
+        left_trigger,
+        right_trigger,
+    };
 
-    pub fn getAxis(controller: *Gamepad, axis: Axis) i16 {
-        return SDL_GetGamepadAxis(controller, @intFromEnum(axis));
-    }
-    extern fn SDL_GetGamepadAxis(*Gamepad, axis: c_int) i16;
+    pub const BindingType = enum(c_int) {
+        none,
+        button,
+        axis,
+        hat,
+    };
 
-    pub fn getButton(controller: *Gamepad, button: Button) bool {
-        return (SDL_GetGamepadButton(controller, @intFromEnum(button)) == False);
-    }
-    extern fn SDL_GetGamepadButton(controller: *Gamepad, button: c_int) u8;
+    /// A mapping between one joystick input to a gamepad control.
+    ///
+    /// A gamepad has a collection of several bindings, to say, for example, when
+    /// joystick button number 5 is pressed, that should be treated like the
+    /// gamepad's "start" button.
+    ///
+    /// SDL has these bindings built-in for many popular controllers, and can add
+    /// more with a simple text string. Those strings are parsed into a collection
+    /// of these structs to make it easier to operate on the data.
+    pub const Binding = extern struct {
+        input_type: BindingType,
+        input: extern union {
+            button: Button,
+            axis: extern struct {
+                axis: Axis,
+                axis_min: c_int,
+                axis_max: c_int,
+            },
+            hat: extern struct {
+                hat: c_int,
+                hat_mask: c_int,
+            },
+        },
+        output_type: BindingType,
+        output: extern union {
+            button: Button,
+            axis: extern struct {
+                axis: Axis,
+                axis_min: c_int,
+                axis_max: c_int,
+            },
+        },
+    };
+
+    pub const close = closeGamepad;
+    pub const getAxis = getGamepadAxis;
+    pub const getButton = getGamepadButton;
 };
 
-//--------------------------------------------------------------------------------------------------
-//
-// Device power information (SDL_power.h)
-//
-//--------------------------------------------------------------------------------------------------
-pub const PowerState = enum(c_int) {
-    @"error" = -1,
-    unknown,
-    on_battery,
-    no_battery,
-    charging,
-    charged,
-};
+// TODO
+// - SDL_AddGamepadMapping
+// - SDL_AddGamepadMappingsFromIO
+// - SDL_AddGamepadMappingsFromFile
+// - SDL_ReloadGamepadMappings
+// - SDL_GetGamepadMappings
+// - SDL_GetGamepadMappingForGUID
+// - SDL_GetGamepadMapping
+// - SDL_SetGamepadMapping
+// - SDL_HasGamepad
+// - SDL_GetGamepads
+// - SDL_IsGamepad
+// - SDL_GetGamepadNameForID
+// - SDL_GetGamepadPathForID
+// - SDL_GetGamepadPlayerIndexForID
+// - SDL_GetGamepadGUIDForID
+// - SDL_GetGamepadVendorForID
+// - SDL_GetGamepadProductForID
+// - SDL_GetGamepadProductVersionForID
+// - SDL_GetGamepadTypeForID
+// - SDL_GetRealGamepadTypeForID
+// - SDL_GetGamepadMappingForID
 
-// TODO: SDL_GetPowerInfo
+pub fn openGamepad(joystick_index: i32) ?*Gamepad {
+    return SDL_OpenGamepad(joystick_index);
+}
+extern fn SDL_OpenGamepad(joystick_index: i32) ?*Gamepad;
+
+// TODO
+// - SDL_GetGamepadFromID
+// - SDL_GetGamepadFromPlayerIndex
+// - SDL_GetGamepadProperties
+// - SDL_GetGamepadID
+// - SDL_GetGamepadName
+// - SDL_GetGamepadPath
+// - SDL_GetGamepadType
+// - SDL_GetRealGamepadType
+// - SDL_GetGamepadPlayerIndex
+// - SDL_SetGamepadPlayerIndex
+// - SDL_GetGamepadVendor
+// - SDL_GetGamepadProduct
+// - SDL_GetGamepadProductVersion
+// - SDL_GetGamepadProductVersion
+// - SDL_GetGamepadSerial
+// - SDL_GetGamepadSteamHandle
+// - SDL_GetGamepadConnectionState
+// - SDL_GetGamepadPowerInfo
+// - SDL_GamepadConnected
+// - SDL_GetGamepadJoystick
+// - SDL_SetGamepadEventsEnabled
+// - SDL_GamepadEventsEnabled
+// - SDL_GetGamepadBindings
+// - SDL_UpdateGamepads
+// - SDL_GetGamepadTypeFromString
+// - SDL_GetGamepadStringForType
+// - SDL_GetGamepadAxisFromString
+// - SDL_GetGamepadStringForAxis
+// - SDL_GamepadHasAxis
+
+pub fn getGamepadAxis(controller: *Gamepad, axis: Gamepad.Axis) i16 {
+    return SDL_GetGamepadAxis(controller, @intFromEnum(axis));
+}
+extern fn SDL_GetGamepadAxis(*Gamepad, axis: c_int) i16;
+
+// TODO
+// - SDL_GetGamepadButtonFromString
+// - SDL_GetGamepadStringForButton
+// - SDL_GamepadHasButton
+// - SDL_GetGamepadButton
+
+pub fn getGamepadButton(controller: *Gamepad, button: Gamepad.Button) bool {
+    return (SDL_GetGamepadButton(controller, @intFromEnum(button)) == False);
+}
+extern fn SDL_GetGamepadButton(controller: *Gamepad, button: c_int) u8;
+
+// TODO
+// - SDL_GetGamepadButtonLabelForType
+// - SDL_GetGamepadButtonLabel
+// - SDL_GetNumGamepadTouchpads
+// - SDL_GetNumGamepadTouchpadFingers
+// - SDL_GetGamepadTouchpadFinger
+// - SDL_GamepadHasSensor
+// - SDL_SetGamepadSensorEnabled
+// - SDL_GamepadSensorEnabled
+// - SDL_GetGamepadSensorDataRate
+// - SDL_GetGamepadSensorData
+// - SDL_RumbleGamepad
+// - SDL_RumbleGamepadTriggers
+// - SDL_SetGamepadLED
+// - SDL_SendGamepadEffect
+
+pub fn closeGamepad(controller: *Gamepad) void {
+    SDL_CloseGamepad(controller);
+}
+extern fn SDL_CloseGamepad(joystick: *Gamepad) void;
 
 //--------------------------------------------------------------------------------------------------
 //
@@ -2524,6 +2663,16 @@ extern fn SDL_GetPrefPath(org: [*c]const u8, app: [*c]const u8) [*c]const u8;
 // Power Management Status
 //
 //--------------------------------------------------------------------------------------------------
+pub const PowerState = enum(c_int) {
+    @"error" = -1,
+    unknown,
+    on_battery,
+    no_battery,
+    charging,
+    charged,
+};
+
+// TODO: SDL_GetPowerInfo
 
 //--------------------------------------------------------------------------------------------------
 //
