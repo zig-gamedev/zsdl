@@ -1,6 +1,6 @@
 # [zsdl](https://github.com/zig-gamedev/zsdl)
 
-Zig bindings for SDL libs.
+Zig bindings for SDL libs. Work in progress.
 
 ## Getting started (SDL2)
 
@@ -21,7 +21,7 @@ pub fn build(b: *std.Build) !void {
     @import("zsdl").link_SDL2_ttf(exe);
     
     exe.root_module.addImport("zsdl2_image", zsdl.module("zsdl2_image"));
-    @imporT("zsdl").link_SDL2_image(exe);
+    @import("zsdl").link_SDL2_image(exe);
 
     // Optionally use prebuilt libs instead of relying on system installed SDL...
     @import("zsdl").prebuilt.addLibraryPathsTo(exe);
