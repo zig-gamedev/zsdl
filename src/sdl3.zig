@@ -1631,15 +1631,576 @@ pub const EventFilter = fn (userdata: ?*anyopaque, event: *Event) Bool;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Keyboard Support
+// Keyboard Support (SDL_scancode.h, SDL_keycode.h, SDL_keyboard.h)
 //
 //--------------------------------------------------------------------------------------------------
+/// The SDL keyboard scancode representation.
+///
+/// An SDL scancode is the physical representation of a key on the keyboard,
+/// independent of language and keyboard mapping.
+///
+/// Values of this type are used to represent keyboard keys, among other places
+/// in the `scancode` field of the SDL_KeyboardEvent structure.
+///
+/// The values in this enumeration are based on the USB usage page standard:
+/// https://usb.org/sites/default/files/hut1_5.pdf
+pub const Scancode = enum(u32) {
+    unknown = 0,
+    a = 4,
+    b = 5,
+    c = 6,
+    d = 7,
+    e = 8,
+    f = 9,
+    g = 10,
+    h = 11,
+    i = 12,
+    j = 13,
+    k = 14,
+    l = 15,
+    m = 16,
+    n = 17,
+    o = 18,
+    p = 19,
+    q = 20,
+    r = 21,
+    s = 22,
+    t = 23,
+    u = 24,
+    v = 25,
+    w = 26,
+    x = 27,
+    y = 28,
+    z = 29,
+    @"1" = 30,
+    @"2" = 31,
+    @"3" = 32,
+    @"4" = 33,
+    @"5" = 34,
+    @"6" = 35,
+    @"7" = 36,
+    @"8" = 37,
+    @"9" = 38,
+    @"0" = 39,
+    @"return" = 40,
+    escape = 41,
+    backspace = 42,
+    tab = 43,
+    space = 44,
+    minus = 45,
+    equals = 46,
+    leftbracket = 47,
+    rightbracket = 48,
+    backslash = 49,
+    nonushash = 50,
+    semicolon = 51,
+    apostrophe = 52,
+    grave = 53,
+    comma = 54,
+    period = 55,
+    slash = 56,
+    capslock = 57,
+    f1 = 58,
+    f2 = 59,
+    f3 = 60,
+    f4 = 61,
+    f5 = 62,
+    f6 = 63,
+    f7 = 64,
+    f8 = 65,
+    f9 = 66,
+    f10 = 67,
+    f11 = 68,
+    f12 = 69,
+    printscreen = 70,
+    scrolllock = 71,
+    pause = 72,
+    insert = 73,
+    home = 74,
+    pageup = 75,
+    delete = 76,
+    end = 77,
+    pagedown = 78,
+    right = 79,
+    left = 80,
+    down = 81,
+    up = 82,
+    numlockclear = 83,
+    kp_divide = 84,
+    kp_multiply = 85,
+    kp_minus = 86,
+    kp_plus = 87,
+    kp_enter = 88,
+    kp_1 = 89,
+    kp_2 = 90,
+    kp_3 = 91,
+    kp_4 = 92,
+    kp_5 = 93,
+    kp_6 = 94,
+    kp_7 = 95,
+    kp_8 = 96,
+    kp_9 = 97,
+    kp_0 = 98,
+    kp_period = 99,
+    nonusbackslash = 100,
+    application = 101,
+    power = 102,
+    kp_equals = 103,
+    f13 = 104,
+    f14 = 105,
+    f15 = 106,
+    f16 = 107,
+    f17 = 108,
+    f18 = 109,
+    f19 = 110,
+    f20 = 111,
+    f21 = 112,
+    f22 = 113,
+    f23 = 114,
+    f24 = 115,
+    execute = 116,
+    help = 117,
+    menu = 118,
+    select = 119,
+    stop = 120,
+    again = 121,
+    undo = 122,
+    cut = 123,
+    copy = 124,
+    paste = 125,
+    find = 126,
+    mute = 127,
+    volumeup = 128,
+    volumedown = 129,
+    // lockingcapslock, lockingnumlock, lockingscrolllock disabled in SDL_scancode.h
+    kp_comma = 133,
+    kp_equalsas400 = 134,
+    international1 = 135,
+    international2 = 136,
+    international3 = 137,
+    international4 = 138,
+    international5 = 139,
+    international6 = 140,
+    international7 = 141,
+    international8 = 142,
+    international9 = 143,
+    lang1 = 144,
+    lang2 = 145,
+    lang3 = 146,
+    lang4 = 147,
+    lang5 = 148,
+    lang6 = 149,
+    lang7 = 150,
+    lang8 = 151,
+    lang9 = 152,
+    alterase = 153,
+    sysreq = 154,
+    cancel = 155,
+    clear = 156,
+    prior = 157,
+    return2 = 158,
+    separator = 159,
+    out = 160,
+    oper = 161,
+    clearagain = 162,
+    crsel = 163,
+    exsel = 164,
+    kp_00 = 176,
+    kp_000 = 177,
+    thousandsseparator = 178,
+    decimalseparator = 179,
+    currencyunit = 180,
+    currencysubunit = 181,
+    kp_leftparen = 182,
+    kp_rightparen = 183,
+    kp_leftbrace = 184,
+    kp_rightbrace = 185,
+    kp_tab = 186,
+    kp_backspace = 187,
+    kp_a = 188,
+    kp_b = 189,
+    kp_c = 190,
+    kp_d = 191,
+    kp_e = 192,
+    kp_f = 193,
+    kp_xor = 194,
+    kp_power = 195,
+    kp_percent = 196,
+    kp_less = 197,
+    kp_greater = 198,
+    kp_ampersand = 199,
+    kp_dblampersand = 200,
+    kp_verticalbar = 201,
+    kp_dblverticalbar = 202,
+    kp_colon = 203,
+    kp_hash = 204,
+    kp_space = 205,
+    kp_at = 206,
+    kp_exclam = 207,
+    kp_memstore = 208,
+    kp_memrecall = 209,
+    kp_memclear = 210,
+    kp_memadd = 211,
+    kp_memsubtract = 212,
+    kp_memmultiply = 213,
+    kp_memdivide = 214,
+    kp_plusminus = 215,
+    kp_clear = 216,
+    kp_clearentry = 217,
+    kp_binary = 218,
+    kp_octal = 219,
+    kp_decimal = 220,
+    kp_hexadecimal = 221,
+    lctrl = 224,
+    lshift = 225,
+    lalt = 226,
+    lgui = 227,
+    rctrl = 228,
+    rshift = 229,
+    ralt = 230,
+    rgui = 231,
+    mode = 257,
+    sleep = 258,
+    wake = 259,
+    channel_increment = 260,
+    channel_decrement = 261,
+    media_play = 262,
+    media_pause = 263,
+    media_record = 264,
+    media_fast_forward = 265,
+    media_rewind = 266,
+    media_next_track = 267,
+    media_previous_track = 268,
+    media_stop = 269,
+    media_eject = 270,
+    media_play_pause = 271,
+    media_select = 272,
+    ac_new = 273,
+    ac_open = 274,
+    ac_close = 275,
+    ac_exit = 276,
+    ac_save = 277,
+    ac_print = 278,
+    ac_properties = 279,
+    ac_search = 280,
+    ac_home = 281,
+    ac_back = 282,
+    ac_forward = 283,
+    ac_stop = 284,
+    ac_refresh = 285,
+    ac_bookmarks = 286,
+    softleft = 287,
+    softright = 288,
+    call = 289,
+    endcall = 290,
+    _,
+    // 400 - 500 reserved for dynamic keyboard
+};
 
-pub const Scancode = @import("keyboard.zig").Scancode;
+pub inline fn SCANCODE_TO_KEYCODE(scancode: u32) u32 {
+    return scancode | (1 << 30);
+}
 
-pub const Keycode = @import("keyboard.zig").Keycode;
+/// The SDL virtual key representation.
+///
+/// Values of this type are used to represent keyboard keys using the current
+/// layout of the keyboard. These values include Unicode values representing
+/// the unmodified character that would be generated by pressing the key, or an
+/// `SDLK_*` constant for those keys that do not generate characters.
+///
+/// A special exception is the number keys at the top of the keyboard which map
+/// to SDLK_0...SDLK_9 on AZERTY layouts.
+///
+/// Keys with the `SDLK_EXTENDED_MASK` bit set do not map to a scancode or
+/// unicode code point.
+pub const Keycode = enum(u32) {
+    pub const EXTENDED_MASK: u32 = 1 << 29;
+    pub const SCANCODE_MASK: u32 = 1 << 30;
 
-pub const Keymod = u16;
+    pub inline fn fromScancode(scancode: Scancode) Keycode {
+        return @enumFromInt(SCANCODE_TO_KEYCODE(@intFromEnum(scancode)));
+    }
+
+    unknown = 0,
+    @"return" = '\r',
+    escape = '\x1b',
+    backspace = '\x08',
+    tab = '\t',
+    space = ' ',
+    exclaim = '!',
+    dblapostrophe = '"',
+    hash = '#',
+    percent = '%',
+    dollar = '$',
+    ampersand = '&',
+    apostrophe = '\'',
+    leftparen = '(',
+    rightparen = ')',
+    asterisk = '*',
+    plus = '+',
+    comma = ',',
+    minus = '-',
+    period = '.',
+    slash = '/',
+    @"0" = '0',
+    @"1" = '1',
+    @"2" = '2',
+    @"3" = '3',
+    @"4" = '4',
+    @"5" = '5',
+    @"6" = '6',
+    @"7" = '7',
+    @"8" = '8',
+    @"9" = '9',
+    colon = ':',
+    semicolon = ';',
+    less = '<',
+    equals = '=',
+    greater = '>',
+    question = '?',
+    at = '@',
+    leftbracket = '[',
+    backslash = '\\',
+    rightbracket = ']',
+    caret = '^',
+    underscore = '_',
+    grave = '`',
+    a = 'a',
+    b = 'b',
+    c = 'c',
+    d = 'd',
+    e = 'e',
+    f = 'f',
+    g = 'g',
+    h = 'h',
+    i = 'i',
+    j = 'j',
+    k = 'k',
+    l = 'l',
+    m = 'm',
+    n = 'n',
+    o = 'o',
+    p = 'p',
+    q = 'q',
+    r = 'r',
+    s = 's',
+    t = 't',
+    u = 'u',
+    v = 'v',
+    w = 'w',
+    x = 'x',
+    y = 'y',
+    z = 'z',
+    leftbrace = '{',
+    pipe = '|',
+    rightbrace = '}',
+    tilde = '~',
+    delete = '\x7f',
+    plusminus = '\x81',
+    capslock = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.capslock)),
+    f1 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f1)),
+    f2 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f2)),
+    f3 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f3)),
+    f4 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f4)),
+    f5 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f5)),
+    f6 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f6)),
+    f7 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f7)),
+    f8 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f8)),
+    f9 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f9)),
+    f10 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f10)),
+    f11 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f11)),
+    f12 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f12)),
+    printscreen = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.printscreen)),
+    scrolllock = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.scrolllock)),
+    pause = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.pause)),
+    insert = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.insert)),
+    home = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.home)),
+    pageup = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.pageup)),
+    end = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.end)),
+    pagedown = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.pagedown)),
+    right = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.right)),
+    left = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.left)),
+    down = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.down)),
+    up = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.up)),
+    numlockclear = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.numlockclear)),
+    kp_divide = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_divide)),
+    kp_multiply = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_multiply)),
+    kp_minus = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_minus)),
+    kp_plus = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_plus)),
+    kp_enter = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_enter)),
+    kp_1 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_1)),
+    kp_2 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_2)),
+    kp_3 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_3)),
+    kp_4 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_4)),
+    kp_5 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_5)),
+    kp_6 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_6)),
+    kp_7 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_7)),
+    kp_8 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_8)),
+    kp_9 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_9)),
+    kp_0 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_0)),
+    kp_period = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_period)),
+    application = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.application)),
+    power = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.power)),
+    kp_equals = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_equals)),
+    f13 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f13)),
+    f14 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f14)),
+    f15 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f15)),
+    f16 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f16)),
+    f17 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f17)),
+    f18 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f18)),
+    f19 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f19)),
+    f20 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f20)),
+    f21 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f21)),
+    f22 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f22)),
+    f23 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f23)),
+    f24 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f24)),
+    execute = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.execute)),
+    help = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.help)),
+    menu = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.menu)),
+    select = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.select)),
+    stop = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.stop)),
+    again = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.again)),
+    undo = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.undo)),
+    cut = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.cut)),
+    copy = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.copy)),
+    paste = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.paste)),
+    find = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.find)),
+    mute = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.mute)),
+    volumeup = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.volumeup)),
+    volumedown = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.volumedown)),
+    kp_comma = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_comma)),
+    kp_equalsas400 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_equalsas400)),
+    alterase = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.alterase)),
+    sysreq = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.sysreq)),
+    cancel = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.cancel)),
+    clear = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.clear)),
+    prior = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.prior)),
+    return2 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.return2)),
+    separator = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.separator)),
+    out = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.out)),
+    oper = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.oper)),
+    clearagain = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.clearagain)),
+    crsel = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.crsel)),
+    exsel = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.exsel)),
+    kp_00 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_00)),
+    kp_000 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_000)),
+    thousandsseparator = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.thousandsseparator)),
+    decimalseparator = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.decimalseparator)),
+    currencyunit = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.currencyunit)),
+    currencysubunit = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.currencysubunit)),
+    kp_leftparen = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_leftparen)),
+    kp_rightparen = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_rightparen)),
+    kp_leftbrace = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_leftbrace)),
+    kp_rightbrace = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_rightbrace)),
+    kp_tab = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_tab)),
+    kp_backspace = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_backspace)),
+    kp_a = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_a)),
+    kp_b = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_b)),
+    kp_c = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_c)),
+    kp_d = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_d)),
+    kp_e = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_e)),
+    kp_f = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_f)),
+    kp_xor = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_xor)),
+    kp_power = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_power)),
+    kp_percent = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_percent)),
+    kp_less = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_less)),
+    kp_greater = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_greater)),
+    kp_ampersand = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_ampersand)),
+    kp_dblampersand = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_dblampersand)),
+    kp_verticalbar = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_verticalbar)),
+    kp_dblverticalbar = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_dblverticalbar)),
+    kp_colon = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_colon)),
+    kp_hash = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_hash)),
+    kp_space = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_space)),
+    kp_at = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_at)),
+    kp_exclam = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_exclam)),
+    kp_memstore = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memstore)),
+    kp_memrecall = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memrecall)),
+    kp_memclear = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memclear)),
+    kp_memadd = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memadd)),
+    kp_memsubtract = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memsubtract)),
+    kp_memmultiply = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memmultiply)),
+    kp_memdivide = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memdivide)),
+    kp_plusminus = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_plusminus)),
+    kp_clear = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_clear)),
+    kp_clearentry = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_clearentry)),
+    kp_binary = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_binary)),
+    kp_octal = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_octal)),
+    kp_decimal = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_decimal)),
+    kp_hexadecimal = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_hexadecimal)),
+    lctrl = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.lctrl)),
+    lshift = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.lshift)),
+    lalt = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.lalt)),
+    lgui = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.lgui)),
+    rctrl = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.rctrl)),
+    rshift = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.rshift)),
+    ralt = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ralt)),
+    rgui = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.rgui)),
+    mode = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.mode)),
+    sleep = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.sleep)),
+    wake = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.wake)),
+    channel_increment = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.channel_increment)),
+    channel_decrement = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.channel_decrement)),
+    media_play = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_play)),
+    media_pause = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_pause)),
+    media_record = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_record)),
+    media_fast_forward = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_fast_forward)),
+    media_rewind = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_rewind)),
+    media_next_track = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_next_track)),
+    media_previous_track = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_previous_track)),
+    media_stop = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_stop)),
+    media_eject = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_eject)),
+    media_play_pause = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_play_pause)),
+    media_select = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_select)),
+    ac_new = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_new)),
+    ac_open = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_open)),
+    ac_close = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_close)),
+    ac_exit = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_exit)),
+    ac_save = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_save)),
+    ac_print = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_print)),
+    ac_properties = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_properties)),
+    ac_search = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_search)),
+    ac_home = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_home)),
+    ac_back = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_back)),
+    ac_forward = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_forward)),
+    ac_stop = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_stop)),
+    ac_refresh = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_refresh)),
+    ac_bookmarks = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_bookmarks)),
+    softleft = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.softleft)),
+    softright = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.softright)),
+    call = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.call)),
+    endcall = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.endcall)),
+    left_tab = 0x20000001,
+    level5_shift = 0x20000002,
+    multi_key_compose = 0x20000003,
+    lmeta = 0x20000004,
+    rmeta = 0x20000005,
+    lhyper = 0x20000006,
+    rhyper = 0x20000007,
+    _,
+};
+
+/// Valid key modifiers (possibly OR'd together).
+pub const Keymod = enum(u16) {
+    pub const none: u16 = 0x0000;
+    pub const lshift: u16 = 0x0001;
+    pub const rshift: u16 = 0x0002;
+    pub const level5: u16 = 0x0004;
+    pub const lctrl: u16 = 0x0040;
+    pub const rctrl: u16 = 0x0080;
+    pub const lalt: u16 = 0x0100;
+    pub const ralt: u16 = 0x0200;
+    pub const lgui: u16 = 0x0400;
+    pub const rgui: u16 = 0x0800;
+    pub const num: u16 = 0x1000;
+    pub const caps: u16 = 0x2000;
+    pub const mode: u16 = 0x4000;
+    pub const scroll: u16 = 0x8000;
+    pub const ctrl: u16 = lctrl | rctrl;
+    pub const shift: u16 = lshift | rshift;
+    pub const alt: u16 = lalt | ralt;
+    pub const gui: u16 = lgui | rgui;
+};
 
 pub const KeyboardId = u32;
 
@@ -1863,13 +2424,13 @@ pub const PenAxis = enum(c_int) {
 
 //--------------------------------------------------------------------------------------------------
 //
-// Joystick Support
+// Joystick Support (SDL_joystick.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const Joystick = struct {
     pub const Id = u32;
 
-    pub const JoystickType = enum(c_int) {
+    pub const Type = enum(c_int) {
         unknown,
         gamepad,
         wheel,
@@ -1882,7 +2443,7 @@ pub const Joystick = struct {
         throttle,
     };
 
-    pub const JoystickConnectionState = enum(c_int) {
+    pub const ConnectionState = enum(c_int) {
         invalid = -1,
         unknown,
         wired,
@@ -2111,17 +2672,6 @@ extern fn SDL_CloseGamepad(joystick: *Gamepad) void;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Camera (SDL_camera.h)
-//
-//--------------------------------------------------------------------------------------------------
-pub const CameraId = u32;
-
-pub const Camera = opaque {};
-
-// TODO: Camera API
-
-//--------------------------------------------------------------------------------------------------
-//
 // Sensors (SDL_sensor.h)
 //
 //--------------------------------------------------------------------------------------------------
@@ -2133,7 +2683,18 @@ pub const SensorId = u32;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Audio Device Management, Playing and Recording
+// Camera (SDL_camera.h)
+//
+//--------------------------------------------------------------------------------------------------
+pub const CameraId = u32;
+
+pub const Camera = opaque {};
+
+// TODO: Camera API
+
+//--------------------------------------------------------------------------------------------------
+//
+// Audio Device Management, Playing and Recording (SDL_audio.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const AUDIO_MASK_BITSIZE = @as(c_uint, 0xff);
