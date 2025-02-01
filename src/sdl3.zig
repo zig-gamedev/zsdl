@@ -2095,12 +2095,12 @@ extern fn SDL_GetCurrentAudioDriver() [*:0]const u8;
 ///
 /// Returns a 0 terminated array of device instance IDs or NULL on error;
 /// call SDL_free() when it is no longer needed.
-pub fn getAudioPlaybackDevices() Error![]AudioDeviceID {
+pub fn getAudioPlaybackDevices() Error![]AudioDeviceId {
     var count: c_int = undefined;
     const maybe_list = SDL_GetAudioPlaybackDevices(&count);
     return if (maybe_list) |list| list[0..@intCast(count)] else makeError();
 }
-extern fn SDL_GetAudioPlaybackDevices(out_count: ?*c_int) ?[*]AudioDeviceID;
+extern fn SDL_GetAudioPlaybackDevices(out_count: ?*c_int) ?[*]AudioDeviceId;
 
 /// Get a list of currently-connected audio recording devices.
 ///
@@ -2111,19 +2111,19 @@ extern fn SDL_GetAudioPlaybackDevices(out_count: ?*c_int) ?[*]AudioDeviceID;
 ///
 /// Returns a 0 terminated array of device instance IDs or NULL on error;
 /// call SDL_free() when it is no longer needed.
-pub fn getAudioRecordingDevices() Error![]AudioDeviceID {
+pub fn getAudioRecordingDevices() Error![]AudioDeviceId {
     var count: c_int = undefined;
     const maybe_list = SDL_GetAudioRecordingDevices(&count);
     return if (maybe_list) |list| list[0..@intCast(count)] else makeError();
 }
-extern fn SDL_GetAudioRecordingDevices(out_count: ?*c_int) ?[*]AudioDeviceID;
+extern fn SDL_GetAudioRecordingDevices(out_count: ?*c_int) ?[*]AudioDeviceId;
 
 /// Get the human-readable name of a specific audio device.
 pub const getAudioDeviceName = SDL_GetAudioDeviceName;
-extern fn SDL_GetAudioDeviceName(AudioDeviceID) [*:0]const u8;
+extern fn SDL_GetAudioDeviceName(AudioDeviceId) [*:0]const u8;
 
 /// Get the current audio format of a specific audio device.
-pub fn getAudioDeviceFormat(devid: AudioDeviceID) Error!struct { spec: AudioSpec, sample_frames: c_int } {
+pub fn getAudioDeviceFormat(devid: AudioDeviceId) Error!struct { spec: AudioSpec, sample_frames: c_int } {
     var spec: AudioSpec = undefined;
     var sample_frames: c_int = undefined;
     if (SDL_GetAudioDeviceFormat(devid, &spec, &sample_frames) == False) {
@@ -2131,7 +2131,7 @@ pub fn getAudioDeviceFormat(devid: AudioDeviceID) Error!struct { spec: AudioSpec
     }
     return .{ .spec = spec, .sample_frames = sample_frames };
 }
-extern fn SDL_GetAudioDeviceFormat(AudioDeviceID, out_spec: *AudioSpec, out_sample_frames: *c_int) Bool;
+extern fn SDL_GetAudioDeviceFormat(AudioDeviceId, out_spec: *AudioSpec, out_sample_frames: *c_int) Bool;
 
 /// Get the current audio format of a specific audio device.
 /// Channel maps are optional; most things do not need them, instead passing
@@ -2143,29 +2143,29 @@ extern fn SDL_GetAudioDeviceFormat(AudioDeviceID, out_spec: *AudioSpec, out_samp
 /// Returns an array of the current channel mapping, with as many elements as
 /// the current output spec's channels, or NULL if default. This
 /// should be freed with SDL_free() when it is no longer needed.
-pub fn getAudioDeviceChannelMap(devid: AudioDeviceID) ?[]c_int {
+pub fn getAudioDeviceChannelMap(devid: AudioDeviceId) ?[]c_int {
     var count: c_int = undefined;
     return if (SDL_GetAudioDeviceChannelMap(devid, &count)) |list_ptr| list_ptr[0..@intCast(count)] else null;
 }
-extern fn SDL_GetAudioDeviceChannelMap(AudioDeviceID, out_count: *c_int) [*c]c_int;
+extern fn SDL_GetAudioDeviceChannelMap(AudioDeviceId, out_count: *c_int) [*c]c_int;
 
 /// Open a specific audio device.
-pub fn openAudioDevice(device: AudioDeviceID, spec: ?*const AudioSpec) Error!void {
+pub fn openAudioDevice(device: AudioDeviceId, spec: ?*const AudioSpec) Error!void {
     if (SDL_OpenAudioDevice(device, spec) == 0) {
         return makeError();
     }
 }
-extern fn SDL_OpenAudioDevice(AudioDeviceID, ?*const AudioSpec) AudioDeviceID;
+extern fn SDL_OpenAudioDevice(AudioDeviceId, ?*const AudioSpec) AudioDeviceId;
 
-pub fn isAudioDevicePhysical(devid: AudioDeviceID) bool {
+pub fn isAudioDevicePhysical(devid: AudioDeviceId) bool {
     return SDL_IsAudioDevicePhysical(devid) == True;
 }
-extern fn SDL_IsAudioDevicePhysical(AudioDeviceID) Bool;
+extern fn SDL_IsAudioDevicePhysical(AudioDeviceId) Bool;
 
-pub fn isAudioDevicePlayback(devid: AudioDeviceID) bool {
+pub fn isAudioDevicePlayback(devid: AudioDeviceId) bool {
     return SDL_IsAudioDevicePlayback(devid) == True;
 }
-extern fn SDL_IsAudioDevicePlayback(AudioDeviceID) Bool;
+extern fn SDL_IsAudioDevicePlayback(AudioDeviceId) Bool;
 
 /// Use this function to pause audio playback on a specified device.
 ///
@@ -2183,10 +2183,10 @@ extern fn SDL_IsAudioDevicePlayback(AudioDeviceID) Bool;
 ///
 /// Physical devices can not be paused or unpaused, only logical devices
 /// created through SDL_OpenAudioDevice() can be.
-pub fn pauseAudioDevice(device: AudioDeviceID) bool {
+pub fn pauseAudioDevice(device: AudioDeviceId) bool {
     return SDL_PauseAudioDevice(device) == True;
 }
-extern fn SDL_PauseAudioDevice(AudioDeviceID) Bool;
+extern fn SDL_PauseAudioDevice(AudioDeviceId) Bool;
 
 /// Use this function to unpause audio playback on a specified device.
 ///
@@ -2201,10 +2201,10 @@ extern fn SDL_PauseAudioDevice(AudioDeviceID) Bool;
 ///
 /// Physical devices can not be paused or unpaused, only logical devices
 /// created through SDL_OpenAudioDevice() can be.
-pub fn resumeAudioDevice(device: AudioDeviceID) bool {
+pub fn resumeAudioDevice(device: AudioDeviceId) bool {
     return SDL_ResumeAudioDevice(device) == True;
 }
-extern fn SDL_ResumeAudioDevice(AudioDeviceID) Bool;
+extern fn SDL_ResumeAudioDevice(AudioDeviceId) Bool;
 
 /// Use this function to query if an audio device is paused.
 ///
@@ -2214,20 +2214,20 @@ extern fn SDL_ResumeAudioDevice(AudioDeviceID) Bool;
 ///
 /// Physical devices can not be paused or unpaused, only logical devices
 /// created through SDL_OpenAudioDevice() can be.
-pub fn audioDevicePaused(device: AudioDeviceID) bool {
+pub fn audioDevicePaused(device: AudioDeviceId) bool {
     return SDL_AudioDevicePaused(device) == True;
 }
-extern fn SDL_AudioDevicePaused(AudioDeviceID) Bool;
+extern fn SDL_AudioDevicePaused(AudioDeviceId) Bool;
 
 /// Get the gain of an audio device.
 ///
 /// Physical devices may not have their gain changed, only logical devices, and
 /// this function will always return -1.0f when used on physical devices.
-pub fn getAudioDeviceGain(device: AudioDeviceID) Error!f32 {
+pub fn getAudioDeviceGain(device: AudioDeviceId) Error!f32 {
     const gain = SDL_GetAudioDeviceGain(device);
     return if (gain == -1.0) makeError() else gain;
 }
-extern fn SDL_GetAudioDeviceGain(AudioDeviceID) f32;
+extern fn SDL_GetAudioDeviceGain(AudioDeviceId) f32;
 
 /// Change the gain of an audio device.
 ///
@@ -2243,12 +2243,12 @@ extern fn SDL_GetAudioDeviceGain(AudioDeviceID) f32;
 /// an audiostream; that recording audiostream can then adjust its gain further
 /// when outputting the data elsewhere, if it likes, but that second gain is
 /// not applied until the data leaves the audiostream again.
-pub fn setAudioDeviceGain(device: AudioDeviceID, gain: f32) Error!void {
+pub fn setAudioDeviceGain(device: AudioDeviceId, gain: f32) Error!void {
     if (SDL_SetAudioDeviceGain(device, gain) == False) {
         return makeError();
     }
 }
-extern fn SDL_SetAudioDeviceGain(AudioDeviceID, f32) Bool;
+extern fn SDL_SetAudioDeviceGain(AudioDeviceId, f32) Bool;
 
 /// Close a previously-opened audio device.
 ///
@@ -2258,7 +2258,7 @@ extern fn SDL_SetAudioDeviceGain(AudioDeviceID, f32) Bool;
 /// hardware, so that applications don't drop the last buffer of data they
 /// supplied if terminating immediately afterwards.
 pub const closeAudioDevice = SDL_CloseAudioDevice;
-extern fn SDL_CloseAudioDevice(AudioDeviceID) void;
+extern fn SDL_CloseAudioDevice(AudioDeviceId) void;
 
 // TODO
 // - SDL_BindAudioStreams
@@ -2272,7 +2272,7 @@ extern fn SDL_CloseAudioDevice(AudioDeviceID) void;
 ///
 /// If not bound, or invalid, this returns zero, which is not a valid device ID.
 pub const getAudioStreamDevice = SDL_GetAudioStreamDevice;
-extern fn SDL_GetAudioStreamDevice(*AudioStream) AudioDeviceID;
+extern fn SDL_GetAudioStreamDevice(*AudioStream) AudioDeviceId;
 
 // TODO
 // - SDL_CreateAudioStream
@@ -2413,11 +2413,11 @@ pub const AudioStreamCallback = *const fn (
 ///
 /// Destroying the returned stream with SDL_DestroyAudioStream will also close
 /// the audio device associated with this stream.
-pub fn openAudioDeviceStream(device: AudioDeviceID, spec: *const AudioSpec, callback: ?AudioStreamCallback, userdata: *anyopaque) Error!*AudioStream {
+pub fn openAudioDeviceStream(device: AudioDeviceId, spec: *const AudioSpec, callback: ?AudioStreamCallback, userdata: *anyopaque) Error!*AudioStream {
     const maybe_stream = SDL_OpenAudioDeviceStream(device, spec, callback, userdata);
     return if (maybe_stream) |stream| stream else makeError();
 }
-extern fn SDL_OpenAudioDeviceStream(AudioDeviceID, *const AudioSpec, ?AudioStreamCallback, *anyopaque) ?*AudioStream;
+extern fn SDL_OpenAudioDeviceStream(AudioDeviceId, *const AudioSpec, ?AudioStreamCallback, *anyopaque) ?*AudioStream;
 
 // TODO
 // - SDL_AudioPostmixCallback
