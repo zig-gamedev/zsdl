@@ -2050,7 +2050,7 @@ pub inline fn AUDIO_ISUNSIGNED(format: AudioFormat) bool {
     return !AUDIO_ISSIGNED(format);
 }
 
-pub const AudioDeviceID = u32;
+pub const AudioDeviceId = u32;
 
 pub const AUDIO_DEVICE_DEFAULT_PLAYBACK = 0xFFFFFFFF;
 pub const AUDIO_DEVICE_DEFAULT_RECORDING = 0xFFFFFFFE;
