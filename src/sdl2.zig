@@ -205,6 +205,8 @@ pub const Window = opaque {
     pub const getSize = windowGetSize;
     pub const setTitle = windowSetTitle;
     pub const getSurface = getWindowSurface;
+    pub const getID = windowGetID;
+    pub const getFlags = windowGetFlags;
 };
 
 /// Create a window with the specified position, dimensions, and flags.
@@ -248,6 +250,20 @@ pub fn windowSetTitle(window: *Window, title: [:0]const u8) void {
     SDL_SetWindowTitle(window, title);
 }
 extern fn SDL_SetWindowTitle(window: *Window, title: ?[*:0]const u8) void;
+
+pub fn windowGetID(window: *Window) Error!u32 {
+    const id = SDL_GetWindowID(window);
+    if (id == 0) return makeError();
+    return id;
+}
+
+extern fn SDL_GetWindowID(window: *Window) u32;
+
+pub fn windowGetFlags(window: *Window) Window.Flags {
+    return SDL_GetWindowFlags(window);
+}
+
+extern fn SDL_GetWindowFlags(window: *Window) Window.Flags;
 
 /// Get the number of video drivers compiled into SDL.
 pub fn getNumVideoDrivers() Error!u16 {
@@ -869,6 +885,12 @@ extern fn SDL_CreateRGBSurfaceWithFormatFrom(
     pitch: c_int,
     format: PixelFormatEnum,
 ) ?*Surface;
+
+pub fn loadBMP_RW(src: *anyopaque, freesrc: c_int) Error!*Surface {
+    return SDL_LoadBMP_RW(src, freesrc) orelse makeError();
+}
+
+extern fn SDL_LoadBMP_RW(src: *anyopaque, freesrc: c_int) ?*Surface;
 
 /// Get information about a rendering context.
 pub fn getRendererInfo(r: *const Renderer) Error!RendererInfo {
@@ -2489,6 +2511,39 @@ extern fn SDL_GetPrefPath(org: [*c]const u8, app: [*c]const u8) [*c]const u8;
 // File I/O Abstraction
 //
 //--------------------------------------------------------------------------------------------------
+
+pub fn rwClose(context: *anyopaque) void {
+    _ = SDL_RWclose(context);
+}
+extern fn SDL_RWclose(context: *anyopaque) c_int;
+
+pub fn rwFromConstMem(mem: []const u8) !*anyopaque {
+    return SDL_RWFromConstMem(mem.ptr, @intCast(mem.len));
+}
+
+extern fn SDL_RWFromConstMem(mem: [*c]const u8, size: c_int) *anyopaque;
+
+pub fn rwFromFile(file: []const u8, mode: []const u8) !*anyopaque {
+    const rw = SDL_RWFromFile(file.ptr, mode.ptr);
+    if (rw == null) return makeError();
+    return rw.?;
+}
+
+extern fn SDL_RWFromFile(file: [*c]const u8, mode: [*c]const u8) ?*anyopaque;
+
+pub fn rwRead(context: *anyopaque, buffer: []u8) usize {
+    return SDL_RWread(context, buffer.ptr, @sizeOf(u8), buffer.len);
+}
+
+extern fn SDL_RWread(context: *anyopaque, ptr: [*c]u8, size: usize, maxnum: usize) usize;
+
+pub fn rwSize(context: *anyopaque) !usize {
+    const result = SDL_RWsize(context);
+    if (result < 0) return makeError();
+    return @intCast(result);
+}
+
+extern fn SDL_RWsize(context: *anyopaque) i64;
 
 //--------------------------------------------------------------------------------------------------
 //
