@@ -1165,10 +1165,10 @@ pub const vk = struct {
     }
     extern fn SDL_Vulkan_UnloadLibrary() void;
 
-    pub fn getInstanceExtensions(count: *i32, maybe_names: ?[*][*:0]u8) bool {
-        return SDL_Vulkan_GetInstanceExtensions(count, maybe_names);
+    pub fn getInstanceExtensions(count: *i32) ?[*][*:0]u8 {
+        return SDL_Vulkan_GetInstanceExtensions(count);
     }
-    extern fn SDL_Vulkan_GetInstanceExtensions(count: *i32, names: ?[*][*:0]u8) bool;
+    extern fn SDL_Vulkan_GetInstanceExtensions(count: *i32) ?[*][*:0]u8;
 
     pub fn createSurface(window: *Window, instance: Instance, surface: *anyopaque) bool {
         return SDL_Vulkan_CreateSurface(window, instance, surface);
