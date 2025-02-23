@@ -29,53 +29,54 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/sdl3.zig"),
     });
 
-    const test_step = b.step("test", "Run bindings tests");
-    { // Test SDL2 bindings
-        const zsdl2_tests = addTests(test_step, target, optimize, "zsdl2-tests", "src/sdl2.zig");
-        link_SDL2(zsdl2_tests);
-    }
-    { // Test SDL2_ttf bindings
-        const zsdl2_ttf_tests = addTestsAux(
-            test_step,
-            target,
-            optimize,
-            "zsdl2_ttf-tests",
-            "src/sdl2_ttf.zig",
-            "zsdl2",
-            zsdl2_module,
-        );
-        link_SDL2(zsdl2_ttf_tests);
-        link_SDL2_ttf(zsdl2_ttf_tests);
-    }
-    { // Test SDL2_image bindings
-        const zsdl2_image_tests = addTestsAux(
-            test_step,
-            target,
-            optimize,
-            "zsdl2_ttf-image",
-            "src/sdl2_image.zig",
-            "zsdl2",
-            zsdl2_module,
-        );
-        link_SDL2(zsdl2_image_tests);
-        link_SDL2_image(zsdl2_image_tests);
-    }
-    { // Test SDL3 bindings
-        const zsdl3_tests = addTests(test_step, target, optimize, "zsdl3-tests", "src/sdl3.zig");
-        link_SDL3(zsdl3_tests);
-    }
+    {
+        const test_step = b.step("test", "Run bindings tests");
+        { // Test SDL2 bindings
+            const zsdl2_tests = addTests(test_step, target, optimize, "zsdl2-tests", "src/sdl2.zig");
+            link_SDL2(zsdl2_tests);
+            prebuilt_sdl2.addLibraryPathsTo(zsdl2_tests);
+        }
+        { // Test SDL2_ttf bindings
+            const zsdl2_ttf_tests = addTestsAux(
+                test_step,
+                target,
+                optimize,
+                "zsdl2_ttf-tests",
+                "src/sdl2_ttf.zig",
+                "zsdl2",
+                zsdl2_module,
+            );
+            link_SDL2(zsdl2_ttf_tests);
+            link_SDL2_ttf(zsdl2_ttf_tests);
+            prebuilt_sdl2.addLibraryPathsTo(zsdl2_ttf_tests);
+        }
+        { // Test SDL2_image bindings
+            const zsdl2_image_tests = addTestsAux(
+                test_step,
+                target,
+                optimize,
+                "zsdl2_ttf-image",
+                "src/sdl2_image.zig",
+                "zsdl2",
+                zsdl2_module,
+            );
+            link_SDL2(zsdl2_image_tests);
+            link_SDL2_image(zsdl2_image_tests);
+            prebuilt_sdl2.addLibraryPathsTo(zsdl2_image_tests);
+        }
+        { // Test SDL3 bindings
+            const zsdl3_tests = addTests(test_step, target, optimize, "zsdl3-tests", "src/sdl3.zig");
+            link_SDL3(zsdl3_tests);
+            prebuilt_sdl3.addLibraryPathsTo(zsdl3_tests);
+        }
 
-    if (prebuilt.install_SDL2(b, target.result, .bin)) |install_sdl2_step| {
-        b.getInstallStep().dependOn(install_sdl2_step);
-    }
-    if (prebuilt.install_SDL2_ttf(b, target.result, .bin)) |install_sdl2_ttf_step| {
-        b.getInstallStep().dependOn(install_sdl2_ttf_step);
-    }
-    if (prebuilt.install_SDL2_image(b, target.result, .bin)) |install_sdl2_image_step| {
-        b.getInstallStep().dependOn(install_sdl2_image_step);
-    }
-    if (prebuilt.install_SDL3(b, target.result, .bin)) |install_sdl3_step| {
-        b.getInstallStep().dependOn(install_sdl3_step);
+        if (prebuilt_sdl2.install(b, target.result, .bin, .{ .ttf = true, .image = true })) |install_sdl2_step| {
+            b.getInstallStep().dependOn(install_sdl2_step);
+        }
+
+        if (prebuilt_sdl3.install(b, target.result, .bin, .{})) |install_sdl3_step| {
+            b.getInstallStep().dependOn(install_sdl3_step);
+        }
     }
 }
 
@@ -158,7 +159,7 @@ pub fn testVersionCheckSDL2(b: *std.Build, target: std.Build.ResolvedTarget) *st
 
     link_SDL2(test_sdl2_version_check);
 
-    prebuilt.addLibraryPathsTo(test_sdl2_version_check);
+    prebuilt_sdl2.addLibraryPathsTo(test_sdl2_version_check);
 
     const version_check_run = b.addRunArtifact(test_sdl2_version_check);
 
@@ -170,14 +171,14 @@ pub fn testVersionCheckSDL2(b: *std.Build, target: std.Build.ResolvedTarget) *st
 
     version_check_run.step.dependOn(&test_sdl2_version_check.step);
 
-    if (prebuilt.install_SDL2(b, target.result, .bin)) |install_sdl2_step| {
+    if (prebuilt_sdl2.install(b, target.result, .bin, .{})) |install_sdl2_step| {
         version_check_run.step.dependOn(install_sdl2_step);
     }
 
     return &version_check_run.step;
 }
 
-pub const prebuilt = struct {
+pub const prebuilt_sdl2 = struct {
     pub fn addLibraryPathsTo(compile_step: *std.Build.Step.Compile) void {
         const b = compile_step.step.owner;
         const target = compile_step.rootModuleTarget();
@@ -187,9 +188,6 @@ pub const prebuilt = struct {
                     if (b.lazyDependency("sdl2-prebuilt-x86_64-windows-gnu", .{})) |sdl2_prebuilt| {
                         compile_step.addLibraryPath(sdl2_prebuilt.path("lib"));
                     }
-                    if (b.lazyDependency("sdl3-prebuilt-x86_64-windows-gnu", .{})) |sdl3_prebuilt| {
-                        compile_step.addLibraryPath(sdl3_prebuilt.path("bin"));
-                    }
                 }
             },
             .linux => {
@@ -197,15 +195,129 @@ pub const prebuilt = struct {
                     if (b.lazyDependency("sdl2-prebuilt-x86_64-linux-gnu", .{})) |sdl2_prebuilt| {
                         compile_step.addLibraryPath(sdl2_prebuilt.path("lib"));
                     }
-                    if (b.lazyDependency("sdl3-prebuilt-x86_64-linux-gnu", .{})) |sdl3_prebuilt| {
-                        compile_step.addLibraryPath(sdl3_prebuilt.path("lib"));
-                    }
                 }
             },
             .macos => {
                 if (b.lazyDependency("sdl2-prebuilt-macos", .{})) |sdl2_prebuilt| {
                     compile_step.addFrameworkPath(sdl2_prebuilt.path("Frameworks"));
                 }
+            },
+            else => {},
+        }
+    }
+
+    pub fn install(
+        b: *std.Build,
+        target: std.Target,
+        install_dir: std.Build.InstallDir,
+        aux_libs: packed struct {
+            ttf: bool = false,
+            image: bool = false,
+        },
+    ) ?*std.Build.Step {
+        var install_step = b.step("Install SDL2", "Installs SDL2 and auxillary runtime libraries.");
+
+        switch (target.os.tag) {
+            .windows => {
+                if (target.cpu.arch.isX86()) {
+                    if (b.lazyDependency("sdl2-prebuilt-x86_64-windows-gnu", .{})) |sdl2_prebuilt| {
+                        install_step.dependOn(&b.addInstallFileWithDir(
+                            sdl2_prebuilt.path("bin/SDL2.dll"),
+                            install_dir,
+                            "SDL2.dll",
+                        ).step);
+                        if (aux_libs.ttf) {
+                            install_step.dependOn(&b.addInstallFileWithDir(
+                                sdl2_prebuilt.path("bin/SDL2_ttf.dll"),
+                                install_dir,
+                                "SDL2_ttf.dll",
+                            ).step);
+                        }
+                        if (aux_libs.image) {
+                            install_step.dependOn(&b.addInstallFileWithDir(
+                                sdl2_prebuilt.path("bin/SDL2_image.dll"),
+                                install_dir,
+                                "SDL2_image.dll",
+                            ).step);
+                        }
+                    }
+                }
+            },
+            .linux => {
+                if (target.cpu.arch.isX86()) {
+                    if (b.lazyDependency("sdl2-prebuilt-x86_64-linux-gnu", .{})) |sdl2_prebuilt| {
+                        install_step.dependOn(&b.addInstallFileWithDir(
+                            sdl2_prebuilt.path("lib/libSDL2.so"),
+                            install_dir,
+                            "libSDL2.so",
+                        ).step);
+                        if (aux_libs.ttf) {
+                            install_step.dependOn(&b.addInstallFileWithDir(
+                                sdl2_prebuilt.path("lib/libSDL2_ttf.so"),
+                                install_dir,
+                                "libSDL2_ttf.so",
+                            ).step);
+                        }
+                        if (aux_libs.image) {
+                            install_step.dependOn(&b.addInstallFileWithDir(
+                                sdl2_prebuilt.path("lib/libSDL2_image.so"),
+                                install_dir,
+                                "libSDL2_image.so",
+                            ).step);
+                        }
+                    }
+                }
+            },
+            .macos => {
+                if (b.lazyDependency("sdl2-prebuilt-macos", .{})) |sdl2_prebuilt| {
+                    install_step.dependOn(&b.addInstallDirectory(.{
+                        .source_dir = sdl2_prebuilt.path("Frameworks/SDL2.framework"),
+                        .install_dir = install_dir,
+                        .install_subdir = "SDL2.framework",
+                    }).step);
+                    if (aux_libs.ttf) {
+                        install_step.dependOn(&b.addInstallDirectory(.{
+                            .source_dir = sdl2_prebuilt.path("Frameworks/SDL2_ttf.framework"),
+                            .install_dir = install_dir,
+                            .install_subdir = "SDL2_ttf.framework",
+                        }).step);
+                    }
+                    if (aux_libs.image) {
+                        install_step.dependOn(&b.addInstallDirectory(.{
+                            .source_dir = sdl2_prebuilt.path("Frameworks/SDL2_image.framework"),
+                            .install_dir = install_dir,
+                            .install_subdir = "SDL2_image.framework",
+                        }).step);
+                    }
+                }
+            },
+            else => {},
+        }
+
+        return install_step;
+    }
+};
+
+pub const prebuilt_sdl3 = struct {
+    pub fn addLibraryPathsTo(compile_step: *std.Build.Step.Compile) void {
+        const b = compile_step.step.owner;
+        const target = compile_step.rootModuleTarget();
+        switch (target.os.tag) {
+            .windows => {
+                if (target.cpu.arch.isX86()) {
+                    if (b.lazyDependency("sdl3-prebuilt-x86_64-windows-gnu", .{})) |sdl3_prebuilt| {
+                        compile_step.addLibraryPath(sdl3_prebuilt.path("bin"));
+                    }
+                }
+            },
+            .linux => {
+                if (target.cpu.arch.isX86()) {
+                    if (b.lazyDependency("sdl3-prebuilt-x86_64-linux-gnu", .{})) |sdl3_prebuilt| {
+                        compile_step.addLibraryPath(sdl3_prebuilt.path("lib"));
+                    }
+                }
+            },
+            .macos => {
                 if (b.lazyDependency("sdl3-prebuilt-macos", .{})) |sdl3_prebuilt| {
                     compile_step.addFrameworkPath(sdl3_prebuilt.path("Frameworks"));
                 }
@@ -214,137 +326,15 @@ pub const prebuilt = struct {
         }
     }
 
-    pub fn install_SDL2(
+    pub fn install(
         b: *std.Build,
         target: std.Target,
         install_dir: std.Build.InstallDir,
+        aux_libs: packed struct {
+            // TODO
+        },
     ) ?*std.Build.Step {
-        switch (target.os.tag) {
-            .windows => {
-                if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl2-prebuilt-x86_64-windows-gnu", .{})) |sdl2_prebuilt| {
-                        return &b.addInstallFileWithDir(
-                            sdl2_prebuilt.path("bin/SDL2.dll"),
-                            install_dir,
-                            "SDL2.dll",
-                        ).step;
-                    }
-                }
-            },
-            .linux => {
-                if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl2-prebuilt-x86_64-linux-gnu", .{})) |sdl2_prebuilt| {
-                        return &b.addInstallFileWithDir(
-                            sdl2_prebuilt.path("lib/libSDL2.so"),
-                            install_dir,
-                            "libSDL2.so",
-                        ).step;
-                    }
-                }
-            },
-            .macos => {
-                if (b.lazyDependency("sdl2-prebuilt-macos", .{})) |sdl2_prebuilt| {
-                    return &b.addInstallDirectory(.{
-                        .source_dir = sdl2_prebuilt.path("Frameworks/SDL2.framework"),
-                        .install_dir = install_dir,
-                        .install_subdir = "SDL2.framework",
-                    }).step;
-                }
-            },
-            else => {},
-        }
-        return null;
-    }
-
-    pub fn install_SDL2_ttf(
-        b: *std.Build,
-        target: std.Target,
-        install_dir: std.Build.InstallDir,
-    ) ?*std.Build.Step {
-        switch (target.os.tag) {
-            .windows => {
-                if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl2-prebuilt-x86_64-windows-gnu", .{})) |sdl2_prebuilt| {
-                        return &b.addInstallFileWithDir(
-                            sdl2_prebuilt.path("bin/SDL2_ttf.dll"),
-                            install_dir,
-                            "SDL2_ttf.dll",
-                        ).step;
-                    }
-                }
-            },
-            .linux => {
-                if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl2-prebuilt-x86_64-linux-gnu", .{})) |sdl2_prebuilt| {
-                        return &b.addInstallFileWithDir(
-                            sdl2_prebuilt.path("lib/libSDL2_ttf.so"),
-                            install_dir,
-                            "libSDL2_ttf.so",
-                        ).step;
-                    }
-                }
-            },
-            .macos => {
-                if (b.lazyDependency("sdl2-prebuilt-macos", .{})) |sdl2_prebuilt| {
-                    return &b.addInstallDirectory(.{
-                        .source_dir = sdl2_prebuilt.path("Frameworks/SDL2_ttf.framework"),
-                        .install_dir = install_dir,
-                        .install_subdir = "SDL2_ttf.framework",
-                    }).step;
-                }
-            },
-            else => {},
-        }
-        return null;
-    }
-
-    pub fn install_SDL2_image(
-        b: *std.Build,
-        target: std.Target,
-        install_dir: std.Build.InstallDir,
-    ) ?*std.Build.Step {
-        switch (target.os.tag) {
-            .windows => {
-                if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl2-prebuilt-x86_64-windows-gnu", .{})) |sdl2_prebuilt| {
-                        return &b.addInstallFileWithDir(
-                            sdl2_prebuilt.path("bin/SDL2_image.dll"),
-                            install_dir,
-                            "SDL2_image.dll",
-                        ).step;
-                    }
-                }
-            },
-            .linux => {
-                if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl2-prebuilt-x86_64-linux-gnu", .{})) |sdl2_prebuilt| {
-                        return &b.addInstallFileWithDir(
-                            sdl2_prebuilt.path("lib/libSDL2_image.so"),
-                            install_dir,
-                            "libSDL2_image.so",
-                        ).step;
-                    }
-                }
-            },
-            .macos => {
-                if (b.lazyDependency("sdl2-prebuilt-macos", .{})) |sdl2_prebuilt| {
-                    return &b.addInstallDirectory(.{
-                        .source_dir = sdl2_prebuilt.path("Frameworks/SDL2_image.framework"),
-                        .install_dir = install_dir,
-                        .install_subdir = "SDL2_image.framework",
-                    }).step;
-                }
-            },
-            else => {},
-        }
-        return null;
-    }
-
-    pub fn install_SDL3(
-        b: *std.Build,
-        target: std.Target,
-        install_dir: std.Build.InstallDir,
-    ) ?*std.Build.Step {
+        _ = aux_libs;
         switch (target.os.tag) {
             .windows => {
                 if (target.cpu.arch.isX86()) {
@@ -397,8 +387,6 @@ fn addTests(
         .target = target,
         .optimize = optimize,
     });
-    // TODO(hazeycode): Using prebuilt libs for now. Compile from source in future.
-    prebuilt.addLibraryPathsTo(tests);
     b.installArtifact(tests);
     test_step.dependOn(&b.addRunArtifact(tests).step);
     return tests;
