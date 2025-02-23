@@ -421,7 +421,7 @@ pub const Renderer = opaque {
 
     pub const create = createRenderer;
     pub const destroy = destroyRenderer;
-    // TODO
+    pub const present = renderPresent;
 };
 
 /// Get the number of 2D rendering drivers available for the current display.
@@ -517,7 +517,7 @@ pub fn renderClear(r: *Renderer) !void {
 }
 extern fn SDL_RenderClear(r: *Renderer) i32;
 
-pub const renderesent = SDL_RenderPresent;
+pub const renderPresent = SDL_RenderPresent;
 extern fn SDL_RenderPresent(r: *Renderer) void;
 
 pub fn renderTexture(
