@@ -1,6 +1,6 @@
 # [zsdl](https://github.com/zig-gamedev/zsdl)
 
-Zig bindings for SDL libs. Work in progress.
+Zigified bindings for SDL libs. Work in progress.
 
 ## Getting started (SDL2)
 
@@ -24,15 +24,12 @@ pub fn build(b: *std.Build) !void {
     @import("zsdl").link_SDL2_image(exe);
 
     // Optionally use prebuilt libs instead of relying on system installed SDL...
-    @import("zsdl").prebuilt.addLibraryPathsTo(exe);
-    if (@import("zsdl").prebuilt.install_SDL2(b, target.result, .bin)) |install_sdl2_step| {
+    @import("zsdl").prebuilt_sdl2.addLibraryPathsTo(exe);
+    if (@import("zsdl").prebuilt_sdl2.install_SDL2(b, target.result, .bin), .{
+        .ttf = true,
+        .image = true,
+    }) |install_sdl2_step| {
         b.getInstallStep().dependOn(install_sdl2_step);
-    }
-    if (@import("zsdl").prebuilt.install_SDL2_ttf(b, target.result, .bin)) |install_sdl2_ttf_step| {
-        b.getInstallStep().dependOn(install_sdl2_ttf_step);
-    }
-    if (@import("zsdl").prebuilt.install_SDL2_image(b, target.result, .bin)) |install_sdl2_image_step| {
-        b.getInstallStep().dependOn(install_sdl2_image_step);
     }
 }
 ```
