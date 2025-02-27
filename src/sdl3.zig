@@ -430,6 +430,7 @@ pub const Renderer = opaque {
     pub const create = createRenderer;
     pub const destroy = destroyRenderer;
     pub const present = renderPresent;
+    pub const debugText = renderDebugText;
 };
 
 /// Get the number of 2D rendering drivers available for the current display.
@@ -764,6 +765,11 @@ extern fn SDL_RenderReadPixels(
     pixels: ?*anyopaque,
     pitch: c_int,
 ) c_int;
+
+pub fn renderDebugText(renderer: *Renderer, x: f32, y: f32, str: [*:0]const u8) Error!void {
+    if (SDL_RenderDebugText(renderer, x, y, str) == False) return makeError();
+}
+extern fn SDL_RenderDebugText(renderer: *Renderer, x: f32, y: f32, str: [*:0]const u8) Bool;
 
 //--------------------------------------------------------------------------------------------------
 //
