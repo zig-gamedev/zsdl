@@ -25,7 +25,7 @@ pub fn build(b: *std.Build) !void {
 
     // Optionally use prebuilt libs instead of relying on system installed SDL...
     @import("zsdl").prebuilt_sdl2.addLibraryPathsTo(exe);
-    if (@import("zsdl").prebuilt_sdl2.install2(b, target.result, .bin), .{
+    if (@import("zsdl").prebuilt_sdl2.install(b, target.result, .bin), .{
         .ttf = true,
         .image = true,
     }) |install_sdl2_step| {
