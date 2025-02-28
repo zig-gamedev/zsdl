@@ -52,6 +52,9 @@ extern fn SDL_Init(flags: InitFlags) i32;
 pub const quit = SDL_Quit;
 extern fn SDL_Quit() void;
 
+pub const setMainReady = SDL_SetMainReady;
+extern fn SDL_SetMainReady() void;
+
 //--------------------------------------------------------------------------------------------------
 //
 // Configuration Variables
@@ -63,6 +66,11 @@ pub fn setHint(name: [:0]const u8, value: [:0]const u8) bool {
     return SDL_SetHint(name, value) == True;
 }
 extern fn SDL_SetHint(name: [*:0]const u8, value: [*:0]const u8) Bool;
+
+pub fn setAppMetadata(name: [:0]const u8, version: [:0]const u8, identifier: [:0]const u8) Error!void {
+    if (SDL_SetAppMetadata(name, version, identifier) == False) return makeError();
+}
+extern fn SDL_SetAppMetadata(appname: [*:0]const u8, appversion: [*:0]const u8, appidentifier: [*:0]const u8) Bool;
 
 //--------------------------------------------------------------------------------------------------
 //
@@ -422,6 +430,7 @@ pub const Renderer = opaque {
     pub const create = createRenderer;
     pub const destroy = destroyRenderer;
     pub const present = renderPresent;
+    pub const debugText = renderDebugText;
 };
 
 /// Get the number of 2D rendering drivers available for the current display.
@@ -756,6 +765,11 @@ extern fn SDL_RenderReadPixels(
     pixels: ?*anyopaque,
     pitch: c_int,
 ) c_int;
+
+pub fn renderDebugText(renderer: *Renderer, x: f32, y: f32, str: [*:0]const u8) Error!void {
+    if (SDL_RenderDebugText(renderer, x, y, str) == False) return makeError();
+}
+extern fn SDL_RenderDebugText(renderer: *Renderer, x: f32, y: f32, str: [*:0]const u8) Bool;
 
 //--------------------------------------------------------------------------------------------------
 //
