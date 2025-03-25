@@ -185,20 +185,20 @@ pub const prebuilt_sdl2 = struct {
         switch (target.os.tag) {
             .windows => {
                 if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl2-prebuilt-x86_64-windows-gnu", .{})) |sdl2_prebuilt| {
+                    if (b.lazyDependency("sdl2_prebuilt_x86_64_windows_gnu", .{})) |sdl2_prebuilt| {
                         compile_step.addLibraryPath(sdl2_prebuilt.path("lib"));
                     }
                 }
             },
             .linux => {
                 if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl2-prebuilt-x86_64-linux-gnu", .{})) |sdl2_prebuilt| {
+                    if (b.lazyDependency("sdl2_prebuilt_x86_64_linux_gnu", .{})) |sdl2_prebuilt| {
                         compile_step.addLibraryPath(sdl2_prebuilt.path("lib"));
                     }
                 }
             },
             .macos => {
-                if (b.lazyDependency("sdl2-prebuilt-macos", .{})) |sdl2_prebuilt| {
+                if (b.lazyDependency("sdl2_prebuilt_macos", .{})) |sdl2_prebuilt| {
                     compile_step.addFrameworkPath(sdl2_prebuilt.path("Frameworks"));
                 }
             },
@@ -220,7 +220,7 @@ pub const prebuilt_sdl2 = struct {
         switch (target.os.tag) {
             .windows => {
                 if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl2-prebuilt-x86_64-windows-gnu", .{})) |sdl2_prebuilt| {
+                    if (b.lazyDependency("sdl2_prebuilt_x86_64_windows_gnu", .{})) |sdl2_prebuilt| {
                         install_step.dependOn(&b.addInstallFileWithDir(
                             sdl2_prebuilt.path("bin/SDL2.dll"),
                             install_dir,
@@ -245,7 +245,7 @@ pub const prebuilt_sdl2 = struct {
             },
             .linux => {
                 if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl2-prebuilt-x86_64-linux-gnu", .{})) |sdl2_prebuilt| {
+                    if (b.lazyDependency("sdl2_prebuilt_x86_64_linux_gnu", .{})) |sdl2_prebuilt| {
                         install_step.dependOn(&b.addInstallFileWithDir(
                             sdl2_prebuilt.path("lib/libSDL2.so"),
                             install_dir,
@@ -269,7 +269,7 @@ pub const prebuilt_sdl2 = struct {
                 }
             },
             .macos => {
-                if (b.lazyDependency("sdl2-prebuilt-macos", .{})) |sdl2_prebuilt| {
+                if (b.lazyDependency("sdl2_prebuilt_macos", .{})) |sdl2_prebuilt| {
                     install_step.dependOn(&b.addInstallDirectory(.{
                         .source_dir = sdl2_prebuilt.path("Frameworks/SDL2.framework"),
                         .install_dir = install_dir,
@@ -305,20 +305,20 @@ pub const prebuilt_sdl3 = struct {
         switch (target.os.tag) {
             .windows => {
                 if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl3-prebuilt-x86_64-windows-gnu", .{})) |sdl3_prebuilt| {
+                    if (b.lazyDependency("sdl3_prebuilt_x86_64_windows_gnu", .{})) |sdl3_prebuilt| {
                         compile_step.addLibraryPath(sdl3_prebuilt.path("bin"));
                     }
                 }
             },
             .linux => {
                 if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl3-prebuilt-x86_64-linux-gnu", .{})) |sdl3_prebuilt| {
+                    if (b.lazyDependency("sdl3_prebuilt_x86_64_linux_gnu", .{})) |sdl3_prebuilt| {
                         compile_step.addLibraryPath(sdl3_prebuilt.path("lib"));
                     }
                 }
             },
             .macos => {
-                if (b.lazyDependency("sdl3-prebuilt-macos", .{})) |sdl3_prebuilt| {
+                if (b.lazyDependency("sdl3_prebuilt_macos", .{})) |sdl3_prebuilt| {
                     compile_step.addFrameworkPath(sdl3_prebuilt.path("Frameworks"));
                 }
             },
@@ -338,7 +338,7 @@ pub const prebuilt_sdl3 = struct {
         switch (target.os.tag) {
             .windows => {
                 if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl3-prebuilt-x86_64-windows-gnu", .{})) |sdl3_prebuilt| {
+                    if (b.lazyDependency("sdl3_prebuilt_x86_64_windows-gnu", .{})) |sdl3_prebuilt| {
                         return &b.addInstallFileWithDir(
                             sdl3_prebuilt.path("bin/SDL3.dll"),
                             install_dir,
@@ -349,7 +349,7 @@ pub const prebuilt_sdl3 = struct {
             },
             .linux => {
                 if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl3-prebuilt-x86_64-linux-gnu", .{})) |sdl3_prebuilt| {
+                    if (b.lazyDependency("sdl3_prebuilt_x86_64_linux_gnu", .{})) |sdl3_prebuilt| {
                         return &b.addInstallFileWithDir(
                             sdl3_prebuilt.path("lib/libSDL3.so"),
                             install_dir,
@@ -359,7 +359,7 @@ pub const prebuilt_sdl3 = struct {
                 }
             },
             .macos => {
-                if (b.lazyDependency("sdl3-prebuilt-macos", .{})) |sdl3_prebuilt| {
+                if (b.lazyDependency("sdl3_prebuilt_macos", .{})) |sdl3_prebuilt| {
                     return &b.addInstallDirectory(.{
                         .source_dir = sdl3_prebuilt.path("Frameworks/SDL3.framework"),
                         .install_dir = install_dir,
