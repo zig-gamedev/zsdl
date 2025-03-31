@@ -1771,7 +1771,7 @@ pub const Event = extern union {
     render: RenderEvent,
     drop: DropEvent,
     clipboard: ClipboardEvent,
-    _: u128, // padding
+    _: [128]u8, // padding
 };
 
 /// Pump the event loop, gathering events from the input devices.
