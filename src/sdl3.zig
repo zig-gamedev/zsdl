@@ -532,25 +532,25 @@ extern fn SDL_RenderPresent(r: *Renderer) void;
 pub fn renderTexture(
     r: *Renderer,
     tex: *Texture,
-    src: ?*const Rect,
-    dst: ?*const Rect,
+    src: ?*const FRect,
+    dst: ?*const FRect,
 ) Error!void {
     if (SDL_RenderTexture(r, tex, src, dst) == False) return makeError();
 }
 extern fn SDL_RenderTexture(
     r: *Renderer,
     t: *Texture,
-    srcrect: ?*const Rect,
-    dstrect: ?*const Rect,
+    srcrect: ?*const FRect,
+    dstrect: ?*const FRect,
 ) c_int;
 
 pub fn renderTextureRotated(
     r: *Renderer,
     tex: *Texture,
-    src: ?*const Rect,
-    dst: ?*const Rect,
+    src: ?*const FRect,
+    dst: ?*const FRect,
     angle: f64,
-    center: ?*const Point,
+    center: ?*const FPoint,
     flip: Surface.FlipMode,
 ) Error!void {
     if (SDL_RenderTextureRotated(r, tex, src, dst, angle, center, flip) == False) return makeError();
@@ -558,10 +558,10 @@ pub fn renderTextureRotated(
 extern fn SDL_RenderTextureRotated(
     r: *Renderer,
     t: *Texture,
-    srcrect: ?*const Rect,
-    dstrect: ?*const Rect,
+    srcrect: ?*const FRect,
+    dstrect: ?*const FRect,
     angle: f64,
-    center: ?*const Point,
+    center: ?*const FPoint,
     flip: Surface.FlipMode,
 ) c_int;
 
