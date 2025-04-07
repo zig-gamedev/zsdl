@@ -338,7 +338,7 @@ pub const prebuilt_sdl3 = struct {
         switch (target.os.tag) {
             .windows => {
                 if (target.cpu.arch.isX86()) {
-                    if (b.lazyDependency("sdl3_prebuilt_x86_64_windows-gnu", .{})) |sdl3_prebuilt| {
+                    if (b.lazyDependency("sdl3_prebuilt_x86_64_windows_gnu", .{})) |sdl3_prebuilt| {
                         return &b.addInstallFileWithDir(
                             sdl3_prebuilt.path("bin/SDL3.dll"),
                             install_dir,
