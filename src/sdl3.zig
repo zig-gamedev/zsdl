@@ -355,8 +355,8 @@ pub const gl = struct {
     }
     extern fn SDL_GL_MakeCurrent(window: *Window, context: Context) c_int;
 
-    pub const deleteContext = SDL_GL_DeleteContext;
-    extern fn SDL_GL_DeleteContext(context: Context) void;
+    pub const destroyContext = SDL_GL_DestroyContext;
+    extern fn SDL_GL_DestroyContext(context: Context) void;
 };
 
 //--------------------------------------------------------------------------------------------------
