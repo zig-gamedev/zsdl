@@ -2397,7 +2397,7 @@ pub const AudioCallback = *const fn (
     userdata: ?*anyopaque,
     stream: [*c]u8,
     len: c_int,
-) callconv(.C) void;
+) callconv(.c) void;
 
 pub const AudioFormat = u16;
 
