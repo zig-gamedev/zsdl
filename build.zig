@@ -152,9 +152,11 @@ pub fn link_SDL3(compile_step: *std.Build.Step.Compile) void {
 pub fn testVersionCheckSDL2(b: *std.Build, target: std.Build.ResolvedTarget) *std.Build.Step {
     const test_sdl2_version_check = b.addTest(.{
         .name = "sdl2-version-check",
-        .root_source_file = b.dependency("zsdl", .{}).path("src/sdl2_version_check.zig"),
-        .target = target,
-        .optimize = .ReleaseSafe,
+        .root_module = b.createModule(.{
+            .root_source_file = b.dependency("zsdl", .{}).path("src/sdl2_version_check.zig"),
+            .target = target,
+            .optimize = .ReleaseSafe,
+        }),
     });
 
     link_SDL2(test_sdl2_version_check);
@@ -342,7 +344,7 @@ pub const prebuilt_sdl3 = struct {
                         return &b.addInstallFileWithDir(
                             sdl3_prebuilt.path("bin/SDL3.dll"),
                             install_dir,
-                            "SDL2.dll",
+                            "SDL3.dll",
                         ).step;
                     }
                 }
@@ -353,7 +355,7 @@ pub const prebuilt_sdl3 = struct {
                         return &b.addInstallFileWithDir(
                             sdl3_prebuilt.path("lib/libSDL3.so"),
                             install_dir,
-                            "libSDL2.so",
+                            "libSDL3.so",
                         ).step;
                     }
                 }
@@ -383,12 +385,22 @@ fn addTests(
     const b = test_step.owner;
     const tests = b.addTest(.{
         .name = name,
-        .root_source_file = b.path(root_src_path),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path(root_src_path),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     b.installArtifact(tests);
-    test_step.dependOn(&b.addRunArtifact(tests).step);
+
+    const run = b.addRunArtifact(tests);
+    if (target.result.os.tag == .windows) {
+        run.setCwd(.{
+            .cwd_relative = b.getInstallPath(.bin, ""),
+        });
+    }
+
+    test_step.dependOn(&run.step);
     return tests;
 }
 

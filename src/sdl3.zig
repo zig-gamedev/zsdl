@@ -3270,7 +3270,7 @@ pub const AudioStreamCallback = *const fn (
     stream: ?*AudioStream,
     additional_amount: c_int,
     total_amount: c_int,
-) callconv(.C) void;
+) callconv(.c) void;
 
 // TODO
 // - SDL_SetAudioStreamGetCallback
