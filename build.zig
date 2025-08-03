@@ -80,6 +80,19 @@ pub fn build(b: *std.Build) void {
     }
 }
 
+/// Adding the same rpath multiple times will cause dynamic library
+/// loading to fail on macOS 15.4 and later. Therefore, only add the
+/// `@executable_path` rpath if it does not already exist.
+fn addExecutablePathRPath(module: *std.Build.Module) void {
+    for (module.rpaths.items) |rpath| {
+        if (rpath == .special and std.mem.eql(u8, rpath.special, "@executable_path")) {
+            return;
+        }
+    }
+
+    module.addRPathSpecial("@executable_path");
+}
+
 pub fn link_SDL2(compile_step: *std.Build.Step.Compile) void {
     switch (compile_step.rootModuleTarget().os.tag) {
         .windows => {
@@ -92,7 +105,7 @@ pub fn link_SDL2(compile_step: *std.Build.Step.Compile) void {
         },
         .macos => {
             compile_step.linkFramework("SDL2");
-            compile_step.root_module.addRPathSpecial("@executable_path");
+            addExecutablePathRPath(compile_step.root_module);
         },
         else => {},
     }
@@ -109,7 +122,7 @@ pub fn link_SDL2_ttf(compile_step: *std.Build.Step.Compile) void {
         },
         .macos => {
             compile_step.linkFramework("SDL2_ttf");
-            compile_step.root_module.addRPathSpecial("@executable_path");
+            addExecutablePathRPath(compile_step.root_module);
         },
         else => {},
     }
@@ -126,7 +139,7 @@ pub fn link_SDL2_image(compile_step: *std.Build.Step.Compile) void {
         },
         .macos => {
             compile_step.linkFramework("SDL2_image");
-            compile_step.root_module.addRPathSpecial("@executable_path");
+            addExecutablePathRPath(compile_step.root_module);
         },
         else => {},
     }
