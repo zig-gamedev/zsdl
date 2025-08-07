@@ -33,7 +33,7 @@ pub fn build(b: *std.Build) void {
         const test_step = b.step("test", "Run bindings tests");
         { // Test SDL2 bindings
             const zsdl2_tests = addTests(test_step, target, optimize, "zsdl2-tests", "src/sdl2.zig");
-            link_SDL2(zsdl2_tests);
+            link_SDL2_libs_testing(zsdl2_tests);
             prebuilt_sdl2.addLibraryPathsTo(zsdl2_tests);
         }
         { // Test SDL2_ttf bindings
@@ -46,8 +46,7 @@ pub fn build(b: *std.Build) void {
                 "zsdl2",
                 zsdl2_module,
             );
-            link_SDL2(zsdl2_ttf_tests);
-            link_SDL2_ttf(zsdl2_ttf_tests);
+            link_SDL2_libs_testing(zsdl2_ttf_tests);
             prebuilt_sdl2.addLibraryPathsTo(zsdl2_ttf_tests);
         }
         { // Test SDL2_image bindings
@@ -60,13 +59,12 @@ pub fn build(b: *std.Build) void {
                 "zsdl2",
                 zsdl2_module,
             );
-            link_SDL2(zsdl2_image_tests);
-            link_SDL2_image(zsdl2_image_tests);
+            link_SDL2_libs_testing(zsdl2_image_tests);
             prebuilt_sdl2.addLibraryPathsTo(zsdl2_image_tests);
         }
         { // Test SDL3 bindings
             const zsdl3_tests = addTests(test_step, target, optimize, "zsdl3-tests", "src/sdl3.zig");
-            link_SDL3(zsdl3_tests);
+            link_SDL3_libs_testing(zsdl3_tests);
             prebuilt_sdl3.addLibraryPathsTo(zsdl3_tests);
         }
 
@@ -80,51 +78,23 @@ pub fn build(b: *std.Build) void {
     }
 }
 
-pub fn link_SDL2(compile_step: *std.Build.Step.Compile) void {
+fn link_SDL2_libs_testing(compile_step: *std.Build.Step.Compile) void {
     switch (compile_step.rootModuleTarget().os.tag) {
         .windows => {
             compile_step.linkSystemLibrary("SDL2");
             compile_step.linkSystemLibrary("SDL2main");
+            compile_step.linkSystemLibrary("SDL2_ttf");
+            compile_step.linkSystemLibrary("SDL2_image");
         },
         .linux => {
             compile_step.linkSystemLibrary("SDL2");
+            compile_step.linkSystemLibrary("SDL2_ttf");
+            compile_step.linkSystemLibrary("SDL2_image");
             compile_step.root_module.addRPathSpecial("$ORIGIN");
         },
         .macos => {
             compile_step.linkFramework("SDL2");
-            compile_step.root_module.addRPathSpecial("@executable_path");
-        },
-        else => {},
-    }
-}
-
-pub fn link_SDL2_ttf(compile_step: *std.Build.Step.Compile) void {
-    switch (compile_step.rootModuleTarget().os.tag) {
-        .windows => {
-            compile_step.linkSystemLibrary("SDL2_ttf");
-        },
-        .linux => {
-            compile_step.linkSystemLibrary("SDL2_ttf");
-            compile_step.root_module.addRPathSpecial("$ORIGIN");
-        },
-        .macos => {
             compile_step.linkFramework("SDL2_ttf");
-            compile_step.root_module.addRPathSpecial("@executable_path");
-        },
-        else => {},
-    }
-}
-
-pub fn link_SDL2_image(compile_step: *std.Build.Step.Compile) void {
-    switch (compile_step.rootModuleTarget().os.tag) {
-        .windows => {
-            compile_step.linkSystemLibrary("SDL2_image");
-        },
-        .linux => {
-            compile_step.linkSystemLibrary("SDL2_image");
-            compile_step.root_module.addRPathSpecial("$ORIGIN");
-        },
-        .macos => {
             compile_step.linkFramework("SDL2_image");
             compile_step.root_module.addRPathSpecial("@executable_path");
         },
@@ -132,7 +102,7 @@ pub fn link_SDL2_image(compile_step: *std.Build.Step.Compile) void {
     }
 }
 
-pub fn link_SDL3(compile_step: *std.Build.Step.Compile) void {
+fn link_SDL3_libs_testing(compile_step: *std.Build.Step.Compile) void {
     switch (compile_step.rootModuleTarget().os.tag) {
         .windows => {
             compile_step.linkSystemLibrary("SDL3");
@@ -149,6 +119,34 @@ pub fn link_SDL3(compile_step: *std.Build.Step.Compile) void {
     }
 }
 
+pub fn link_SDL2(compile_step: *std.Build.Step.Compile) void {
+    _ = compile_step;
+    @compileError("link_SDL2 no longer supported. Refer to README for linking instructions.");
+
+    // link_SDL2 is no longer supported for linking, as it assumes too much
+    // about the build environment. You should instead copy the relevant link
+    // calls from the README into your build.zig file and adjust as necessary.
+}
+
+pub fn link_SDL2_ttf(compile_step: *std.Build.Step.Compile) void {
+    _ = compile_step;
+    @compileError("link_SDL2_ttf no longer supported. Refer to README for linking instructions.");
+}
+
+pub fn link_SDL2_image(compile_step: *std.Build.Step.Compile) void {
+    _ = compile_step;
+    @compileError("link_SDL2_image no longer supported. Refer to README for linking instructions.");
+}
+
+pub fn link_SDL3(compile_step: *std.Build.Step.Compile) void {
+    _ = compile_step;
+    @compileError("link_SDL3 no longer supported. Refer to README for linking instructions.");
+
+    // link_SDL3 is no longer supported for linking, as it assumes too much
+    // about the build environment. You should instead copy the relevant link
+    // calls from the README into your build.zig file and adjust as necessary.
+}
+
 pub fn testVersionCheckSDL2(b: *std.Build, target: std.Build.ResolvedTarget) *std.Build.Step {
     const test_sdl2_version_check = b.addTest(.{
         .name = "sdl2-version-check",
@@ -159,7 +157,7 @@ pub fn testVersionCheckSDL2(b: *std.Build, target: std.Build.ResolvedTarget) *st
         }),
     });
 
-    link_SDL2(test_sdl2_version_check);
+    link_SDL2_libs_testing(test_sdl2_version_check);
 
     prebuilt_sdl2.addLibraryPathsTo(test_sdl2_version_check);
 
@@ -391,7 +389,7 @@ fn addTests(
             .optimize = optimize,
         }),
     });
-    b.installArtifact(tests);
+    const install = b.addInstallArtifact(tests, .{});
 
     const run = b.addRunArtifact(tests);
     if (target.result.os.tag == .windows) {
@@ -400,6 +398,7 @@ fn addTests(
         });
     }
 
+    run.step.dependOn(&install.step);
     test_step.dependOn(&run.step);
     return tests;
 }
