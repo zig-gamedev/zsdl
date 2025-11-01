@@ -1184,10 +1184,21 @@ pub const vk = struct {
     }
     extern fn SDL_Vulkan_GetInstanceExtensions(count: *i32) ?[*][*:0]u8;
 
-    pub fn createSurface(window: *Window, instance: Instance, surface: *anyopaque) bool {
-        return SDL_Vulkan_CreateSurface(window, instance, surface);
+    pub fn createSurface(
+        window: *Window,
+        instance: Instance,
+        allocator_callbacks: *anyopaque,
+        surface: *anyopaque,
+    ) bool {
+        return SDL_Vulkan_CreateSurface(window, instance, allocator_callbacks, surface);
     }
-    extern fn SDL_Vulkan_CreateSurface(window: *Window, instance: Instance, surface: *anyopaque) bool;
+
+    extern fn SDL_Vulkan_CreateSurface(
+        window: *Window,
+        instance: Instance,
+        allocator_callbacks: *anyopaque,
+        surface: *anyopaque,
+    ) bool;
 };
 
 //--------------------------------------------------------------------------------------------------
