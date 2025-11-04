@@ -52,23 +52,11 @@ pub fn linkSdlLibs(compile_step: *std.Build.Step.Compile) void {
 ```
 
 ### Using prebuilt libraries
-NOTE: If you want to use our prebuilt libraries also add the following to your `build.zig.zon`:
-```zig
-        .@"sdl2-prebuilt-macos" = .{
-            .url = "https://github.com/zig-gamedev/sdl2-prebuilt-macos/archive/f14773fa3de719b3a399b854c31eb4139d63842f.tar.gz",
-            .hash = "12205cb2da6fb4a7fcf28b9cd27b60aaf12f4d4a55be0260b1ae36eaf93ca5a99f03",
-            .lazy = true,
-        },
-        .@"sdl2-prebuilt-x86_64-windows-gnu" = .{
-            .url = "https://github.com/zig-gamedev/sdl2-prebuilt-x86_64-windows-gnu/archive/8143e2a5c28dbace399cbff14c3e8749a1afd418.tar.gz",
-            .hash = "1220ade6b84d06d73bf83cef22c73ec4abc21a6d50b9f48875f348b7942c80dde11b",
-            .lazy = true,
-        },
-        .@"sdl2-prebuilt-x86_64-linux-gnu" = .{
-            .url = "https://github.com/zig-gamedev/sdl2-prebuilt-x86_64-linux-gnu/archive/2eccc574ad909b0d00b694b10c217a95145c47af.tar.gz",
-            .hash = "12200ecb91c0596d0356ff39d573af83abcd44fecb27943589f11c2cd172763fea39",
-            .lazy = true,
-        },
+NOTE: If you want to use our prebuilt libraries also add the following run the following commands from your projects root directory to add the entres to your build.zig.zon and download the packages.
+```sh
+zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-x86_64-windows-gnu.git#master
+zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-x86_64-linux-gnu.git#master
+zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-macos.git#master
 ```
 
 And add the following to your `build.zig`:
