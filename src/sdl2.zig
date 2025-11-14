@@ -201,11 +201,11 @@ pub fn createWindow(
     title: ?[*:0]const u8,
     x: c_int,
     y: c_int,
-    w: c_int,
-    h: c_int,
+    w: u16,
+    h: u16,
     flags: Window.Flags,
 ) Error!*Window {
-    return SDL_CreateWindow(title, x, y, w, h, flags) orelse return makeError();
+    return SDL_CreateWindow(title, x, y, @intCast(w), @intCast(h), flags) orelse return makeError();
 }
 extern fn SDL_CreateWindow(
     title: ?[*:0]const u8,
@@ -1524,8 +1524,8 @@ pub const WindowEvent = extern struct {
     padding1: u8,
     padding2: u8,
     padding3: u8,
-    data1: i32,
-    data2: i32,
+    data1: c_int,
+    data2: c_int,
 };
 
 pub const KeyboardEvent = extern struct {
@@ -1544,8 +1544,8 @@ pub const TextEditingEvent = extern struct {
     timestamp: u32,
     window_id: WindowID,
     text: [text_size]u8,
-    start: i32,
-    length: i32,
+    start: c_int,
+    length: c_int,
 
     const text_size = 32;
 };
@@ -1555,8 +1555,8 @@ pub const TextEditingExtEvent = extern struct {
     timestamp: u32,
     window_id: WindowID,
     text: [*:0]u8,
-    start: i32,
-    length: i32,
+    start: c_int,
+    length: c_int,
 };
 
 pub const TextInputEvent = extern struct {
@@ -1574,10 +1574,10 @@ pub const MouseMotionEvent = extern struct {
     window_id: WindowID,
     which: MouseID,
     state: u32,
-    x: i32,
-    y: i32,
-    xrel: i32,
-    yrel: i32,
+    x: c_int,
+    y: c_int,
+    xrel: c_int,
+    yrel: c_int,
 };
 
 pub const MouseButtonEvent = extern struct {
@@ -1589,8 +1589,8 @@ pub const MouseButtonEvent = extern struct {
     state: ReleasedOrPressed,
     clicks: u8,
     padding1: u8,
-    x: i32,
-    y: i32,
+    x: c_int,
+    y: c_int,
 };
 
 pub const MouseWheelEvent = extern struct {
@@ -2215,7 +2215,7 @@ pub const getMouseFocus = SDL_GetMouseFocus;
 extern fn SDL_GetMouseFocus() ?*Window;
 
 pub const getMouseState = SDL_GetMouseState;
-extern fn SDL_GetMouseState(x: ?*i32, y: ?*i32) u32;
+extern fn SDL_GetMouseState(x: ?*c_int, y: ?*c_int) u32;
 
 const ShowCursorToggleOption = enum(c_int) { enable, disable, query };
 pub fn showCursor(toggle: ShowCursorToggleOption) Error!void {
