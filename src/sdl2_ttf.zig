@@ -11,7 +11,7 @@ pub fn init() !void {
 extern fn TTF_Init() c_int;
 
 pub fn wasInit() bool {
-    return TTF_WasInit() == 1;
+    return TTF_WasInit() == sdl.True;
 }
 extern fn TTF_WasInit() c_int;
 
@@ -21,8 +21,8 @@ pub fn quit() void {
 extern fn TTF_Quit() void;
 
 pub const Font = opaque {
-    pub fn open(file: [:0]const u8, ptsize: i32) !*Font {
-        return TTF_OpenFont(file, ptsize) orelse sdl.makeError();
+    pub fn open(file: [:0]const u8, ptsize: u16) !*Font {
+        return TTF_OpenFont(file, @intCast(ptsize)) orelse sdl.makeError();
     }
     extern fn TTF_OpenFont(file: [*c]const u8, ptsize: c_int) ?*Font;
 
