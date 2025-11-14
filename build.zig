@@ -147,37 +147,6 @@ pub fn link_SDL3(compile_step: *std.Build.Step.Compile) void {
     // calls from the README into your build.zig file and adjust as necessary.
 }
 
-pub fn testVersionCheckSDL2(b: *std.Build, target: std.Build.ResolvedTarget) *std.Build.Step {
-    const test_sdl2_version_check = b.addTest(.{
-        .name = "sdl2-version-check",
-        .root_module = b.createModule(.{
-            .root_source_file = b.dependency("zsdl", .{}).path("src/sdl2_version_check.zig"),
-            .target = target,
-            .optimize = .ReleaseSafe,
-        }),
-    });
-
-    link_SDL2_libs_testing(test_sdl2_version_check);
-
-    prebuilt_sdl2.addLibraryPathsTo(test_sdl2_version_check);
-
-    const version_check_run = b.addRunArtifact(test_sdl2_version_check);
-
-    if (target.result.os.tag == .windows) {
-        version_check_run.setCwd(.{
-            .cwd_relative = b.getInstallPath(.bin, ""),
-        });
-    }
-
-    version_check_run.step.dependOn(&test_sdl2_version_check.step);
-
-    if (prebuilt_sdl2.install(b, target.result, .bin, .{})) |install_sdl2_step| {
-        version_check_run.step.dependOn(install_sdl2_step);
-    }
-
-    return &version_check_run.step;
-}
-
 pub const prebuilt_sdl2 = struct {
     pub fn addLibraryPathsTo(compile_step: *std.Build.Step.Compile) void {
         const b = compile_step.step.owner;
