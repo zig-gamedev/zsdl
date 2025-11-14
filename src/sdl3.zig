@@ -1,6 +1,8 @@
 const builtin = @import("builtin");
+
 const std = @import("std");
 const assert = std.debug.assert;
+const log = std.log.scoped(.zsdl3);
 
 const sdl3 = @This();
 
@@ -10,11 +12,38 @@ test {
 
 //--------------------------------------------------------------------------------------------------
 //
-// Initialzation and Shutdown
+// Application entry points
+//
+//--------------------------------------------------------------------------------------------------
+
+pub const AppResult = enum(c_int) {
+    @"continue" = 0,
+    success = 1,
+    failure = 2,
+};
+
+pub const appInit = SDL_AppInit;
+extern fn SDL_AppInit(appstate: ?*?*anyopaque, argc: c_int, argv: ?[*]?[*:0]const u8) AppResult;
+
+pub const appIterate = SDL_AppIterate;
+extern fn SDL_AppIterate(appstate: ?*anyopaque) AppResult;
+
+pub const appEvent = SDL_AppEvent;
+extern fn SDL_AppEvent(appstate: ?*anyopaque, event: *Event) AppResult;
+
+pub const appQuit = SDL_AppQuit;
+extern fn SDL_AppQuit(appstate: ?*anyopaque, result: AppResult) void;
+
+pub const setMainReady = SDL_SetMainReady;
+extern fn SDL_SetMainReady() void;
+
+//--------------------------------------------------------------------------------------------------
+//
+// Initialization and Shutdown
 //
 //--------------------------------------------------------------------------------------------------
 pub const InitFlags = packed struct(u32) {
-    timer: bool = false,
+    __unused0: bool = false,
     __unused1: bool = false,
     __unused2: bool = false,
     __unused3: bool = false,
@@ -30,10 +59,10 @@ pub const InitFlags = packed struct(u32) {
     gamepad: bool = false,
     events: bool = false,
     sensor: bool = false,
-    __unused16: u16 = 0,
+    camera: bool = false,
+    __unused17: u15 = 0,
 
     pub const everything: InitFlags = .{
-        .timer = true,
         .audio = true,
         .video = true,
         .events = true,
@@ -41,19 +70,17 @@ pub const InitFlags = packed struct(u32) {
         .haptic = true,
         .gamepad = true,
         .sensor = true,
+        .camera = true,
     };
 };
 
 pub fn init(flags: InitFlags) Error!void {
-    if (SDL_Init(flags) == False) return makeError();
+    if (!SDL_Init(flags)) return makeError();
 }
-extern fn SDL_Init(flags: InitFlags) i32;
+extern fn SDL_Init(flags: InitFlags) bool;
 
 pub const quit = SDL_Quit;
 extern fn SDL_Quit() void;
-
-pub const setMainReady = SDL_SetMainReady;
-extern fn SDL_SetMainReady() void;
 
 //--------------------------------------------------------------------------------------------------
 //
@@ -63,14 +90,16 @@ extern fn SDL_SetMainReady() void;
 pub const hint_windows_dpi_awareness = "SDL_WINDOWS_DPI_AWARENESS";
 
 pub fn setHint(name: [:0]const u8, value: [:0]const u8) bool {
-    return SDL_SetHint(name, value) == True;
+    return SDL_SetHint(@ptrCast(name.ptr), @ptrCast(value.ptr));
 }
-extern fn SDL_SetHint(name: [*:0]const u8, value: [*:0]const u8) Bool;
+extern fn SDL_SetHint(name: [*c]const u8, value: [*c]const u8) bool;
 
 pub fn setAppMetadata(name: [:0]const u8, version: [:0]const u8, identifier: [:0]const u8) Error!void {
-    if (SDL_SetAppMetadata(name, version, identifier) == False) return makeError();
+    if (!SDL_SetAppMetadata(@ptrCast(name.ptr), @ptrCast(version.ptr), @ptrCast(identifier.ptr))) {
+        return makeError();
+    }
 }
-extern fn SDL_SetAppMetadata(appname: [*:0]const u8, appversion: [*:0]const u8, appidentifier: [*:0]const u8) Bool;
+extern fn SDL_SetAppMetadata(appname: [*c]const u8, appversion: [*c]const u8, appidentifier: [*c]const u8) bool;
 
 //--------------------------------------------------------------------------------------------------
 //
@@ -78,18 +107,18 @@ extern fn SDL_SetAppMetadata(appname: [*:0]const u8, appversion: [*:0]const u8, 
 //
 //--------------------------------------------------------------------------------------------------
 pub fn getError() ?[:0]const u8 {
-    if (SDL_GetError()) |ptr| {
-        return std.mem.sliceTo(ptr, 0);
+    if (SDL_GetError()) |err_str| {
+        return std.mem.span(err_str);
     }
     return null;
 }
-extern fn SDL_GetError() ?[*:0]const u8;
+extern fn SDL_GetError() [*c]const u8;
 
 pub const Error = error{SdlError};
 
 pub fn makeError() error{SdlError} {
     if (getError()) |str| {
-        std.log.debug("SDL3: {s}", .{str});
+        log.debug("{s}", .{str});
     }
     return error.SdlError;
 }
@@ -117,13 +146,6 @@ pub const Version = extern struct {
     patch: u8,
 };
 
-/// Compiled SDL version
-pub const VERSION = Version{
-    .major = 3,
-    .minor = 0,
-    .patch = 0,
-};
-
 /// Returns the linked SDL version
 pub fn getVersion() Version {
     var version: Version = undefined;
@@ -145,18 +167,20 @@ pub const WindowId = u32;
 pub const DisplayMode = extern struct {
     displayId: DisplayId,
     format: PixelFormatEnum,
-    w: i32,
-    h: i32,
+    w: c_int,
+    h: c_int,
     pixel_density: f32,
     refresh_rate: f32,
-    driverdata: ?*anyopaque = null,
+    refresh_rate_numerator: c_int,
+    refresh_rate_denominator: c_int,
+    internal: ?*anyopaque,
 };
 
 pub const Window = opaque {
-    pub const Flags = packed struct(u32) {
+    pub const Flags = packed struct(u64) {
         fullscreen: bool = false,
         opengl: bool = false,
-        __unused2: u1 = 0,
+        occluded: bool = false,
         hidden: bool = false,
         borderless: bool = false, // 0x10
         resizable: bool = false,
@@ -165,12 +189,12 @@ pub const Window = opaque {
         mouse_grabbed: bool = false, // 0x100
         input_focus: bool = false,
         mouse_focus: bool = false,
-        foreign: bool = false,
-        __unused12: u1 = 0, // 0x1000
-        allow_high_pixel_density: bool = false,
+        external: bool = false,
+        modal: bool = false, // 0x1000
+        high_pixel_density: bool = false,
         mouse_capture: bool = false,
-        always_on_top: bool = false,
-        __unused16: u1 = 0, // 0x10000
+        mouse_relative_mode: bool = false,
+        always_on_top: bool = false, // 0x10000
         utility: bool = false,
         tooltip: bool = false,
         popup_menu: bool = false,
@@ -178,7 +202,9 @@ pub const Window = opaque {
         __unused21: u7 = 0,
         vulkan: bool = false, // 0x10000000
         metal: bool = false,
-        __unused30: u2 = 0,
+        transparent: bool = false,
+        not_focusable: bool = false,
+        __unused32: u32 = 0,
     };
 
     pub const pos_undefined = posUndefinedDisplay(0);
@@ -202,50 +228,44 @@ pub fn posCenteredDisplay(x: i32) i32 {
 const pos_undefined_mask: i32 = 0x1fff_0000;
 const pos_centered_mask: i32 = 0x2fff_0000;
 
-pub fn createWindow(title: ?[*:0]const u8, w: i32, h: i32, flags: Window.Flags) Error!*Window {
+pub fn createWindow(title: ?[*:0]const u8, w: c_int, h: c_int, flags: Window.Flags) Error!*Window {
+    assert(w > 0);
+    assert(h > 0);
     return SDL_CreateWindow(title, w, h, flags) orelse return makeError();
 }
-extern fn SDL_CreateWindow(title: ?[*:0]const u8, w: i32, h: i32, flags: Window.Flags) ?*Window;
+extern fn SDL_CreateWindow(title: ?[*:0]const u8, w: c_int, h: c_int, flags: Window.Flags) ?*Window;
 
 pub const destroyWindow = SDL_DestroyWindow;
 extern fn SDL_DestroyWindow(window: *Window) void;
 
-pub fn getWindowFullscreenMode(window: *Window) Error!DisplayMode {
-    var mode: DisplayMode = undefined;
-    if (SDL_GetWindowFullscreenMode(window, &mode) == False) return makeError();
-    return mode;
-}
-extern fn SDL_GetWindowFullscreenMode(window: *Window, mode: *DisplayMode) i32;
+pub const getWindowFullscreenMode = SDL_GetWindowFullscreenMode;
+extern fn SDL_GetWindowFullscreenMode(window: *Window) ?*const DisplayMode;
 
-pub fn getWindowPosition(window: *Window, w: ?*i32, h: ?*i32) Error!void {
-    if (SDL_GetWindowPosition(window, w, h) == False) return makeError();
+pub fn getWindowPosition(window: *Window, w: ?*c_int, h: ?*c_int) Error!void {
+    if (!SDL_GetWindowPosition(window, w, h)) return makeError();
 }
-extern fn SDL_GetWindowPosition(window: *Window, x: ?*i32, y: ?*i32) i32;
+extern fn SDL_GetWindowPosition(window: *Window, x: ?*c_int, y: ?*c_int) bool;
 
-pub fn getWindowSize(window: *Window, w: ?*i32, h: ?*i32) Error!void {
-    if (SDL_GetWindowSize(window, w, h) == False) return makeError();
+pub fn getWindowSize(window: *Window, w: ?*c_int, h: ?*c_int) Error!void {
+    if (!SDL_GetWindowSize(window, w, h)) return makeError();
 }
-extern fn SDL_GetWindowSize(window: *Window, w: ?*i32, h: ?*i32) i32;
+extern fn SDL_GetWindowSize(window: *Window, w: ?*c_int, h: ?*c_int) bool;
 
 pub fn setWindowTitle(window: *Window, title: [:0]const u8) void {
-    SDL_SetWindowTitle(window, title);
+    SDL_SetWindowTitle(window, @ptrCast(title.ptr));
 }
-extern fn SDL_SetWindowTitle(window: *Window, title: ?[*:0]const u8) void;
+extern fn SDL_SetWindowTitle(window: *Window, title: [*c]const u8) void;
 
-pub fn getNumVideoDrivers() Error!u16 {
-    const res = SDL_GetNumVideoDrivers();
-    if (res < 1) return makeError();
-    return @intCast(res);
-}
+pub const getNumVideoDrivers = SDL_GetNumVideoDrivers;
 extern fn SDL_GetNumVideoDrivers() c_int;
 
 pub fn getVideoDriver(index: u16) ?[:0]const u8 {
     if (SDL_GetVideoDriver(@intCast(index))) |ptr| {
-        return std.mem.sliceTo(ptr, 0);
+        return std.mem.span(ptr);
     }
     return null;
 }
-extern fn SDL_GetVideoDriver(index: c_int) ?[*:0]const u8;
+extern fn SDL_GetVideoDriver(index: c_int) [*c]const u8;
 
 pub const gl = struct {
     pub const Context = *anyopaque;
@@ -307,43 +327,43 @@ pub const gl = struct {
     };
 
     pub fn setAttribute(attr: Attr, value: i32) Error!void {
-        if (SDL_GL_SetAttribute(attr, value) == False) return makeError();
+        if (!SDL_GL_SetAttribute(attr, value)) return makeError();
     }
-    extern fn SDL_GL_SetAttribute(attr: Attr, value: c_int) c_int;
+    extern fn SDL_GL_SetAttribute(attr: Attr, value: c_int) bool;
 
     pub fn getAttribute(attr: Attr) Error!i32 {
         var value: i32 = undefined;
-        if (SDL_GL_GetAttribute(attr, &value) == False) return makeError();
+        if (!SDL_GL_GetAttribute(attr, &value)) return makeError();
         return value;
     }
-    extern fn SDL_GL_GetAttribute(attr: Attr, value: *c_int) c_int;
+    extern fn SDL_GL_GetAttribute(attr: Attr, value: *c_int) bool;
 
     pub fn setSwapInterval(interval: i32) Error!void {
-        if (SDL_GL_SetSwapInterval(interval) == False) return makeError();
+        if (!SDL_GL_SetSwapInterval(interval)) return makeError();
     }
-    extern fn SDL_GL_SetSwapInterval(interval: c_int) c_int;
+    extern fn SDL_GL_SetSwapInterval(interval: c_int) bool;
 
     pub fn getSwapInterval() Error!i32 {
         var interval: c_int = undefined;
-        if (SDL_GL_GetSwapInterval(&interval) == False) return makeError();
+        if (!SDL_GL_GetSwapInterval(&interval)) return makeError();
         return @intCast(interval);
     }
-    extern fn SDL_GL_GetSwapInterval(interval: *c_int) c_int;
+    extern fn SDL_GL_GetSwapInterval(interval: *c_int) bool;
 
     pub fn swapWindow(window: *Window) Error!void {
-        if (SDL_GL_SwapWindow(window) == False) return makeError();
+        if (!SDL_GL_SwapWindow(window)) return makeError();
     }
-    extern fn SDL_GL_SwapWindow(window: *Window) c_int;
+    extern fn SDL_GL_SwapWindow(window: *Window) bool;
 
     pub fn getProcAddress(proc: [*:0]const u8) callconv(.c) FunctionPointer {
         return SDL_GL_GetProcAddress(proc);
     }
-    extern fn SDL_GL_GetProcAddress(proc: ?[*:0]const u8) callconv(.c) FunctionPointer;
+    extern fn SDL_GL_GetProcAddress(proc: [*c]const u8) callconv(.c) FunctionPointer;
 
     pub fn isExtensionSupported(extension: [:0]const u8) bool {
-        return SDL_GL_ExtensionSupported(extension) == True;
+        return SDL_GL_ExtensionSupported(@ptrCast(extension.ptr));
     }
-    extern fn SDL_GL_ExtensionSupported(extension: ?[*:0]const u8) Bool;
+    extern fn SDL_GL_ExtensionSupported(extension: [*c]const u8) bool;
 
     pub fn createContext(window: *Window) Error!Context {
         return SDL_GL_CreateContext(window) orelse return makeError();
@@ -351,9 +371,9 @@ pub const gl = struct {
     extern fn SDL_GL_CreateContext(window: *Window) ?Context;
 
     pub fn makeCurrent(window: *Window, context: Context) Error!void {
-        if (SDL_GL_MakeCurrent(window, context) == False) return makeError();
+        if (!SDL_GL_MakeCurrent(window, context)) return makeError();
     }
-    extern fn SDL_GL_MakeCurrent(window: *Window, context: Context) c_int;
+    extern fn SDL_GL_MakeCurrent(window: *Window, context: Context) bool;
 
     pub const destroyContext = SDL_GL_DestroyContext;
     extern fn SDL_GL_DestroyContext(context: Context) void;
@@ -364,7 +384,6 @@ pub const gl = struct {
 // 2D Accelerated Rendering (SDL_render.h)
 //
 //--------------------------------------------------------------------------------------------------
-pub const SOFTWARE_RENDERER = "software";
 
 pub const Vertex = extern struct {
     position: FPoint,
@@ -397,11 +416,11 @@ extern fn SDL_DestroyTexture(texture: ?*Texture) void;
 
 pub fn lockTexture(texture: *Texture, rect: ?*Rect) !struct {
     pixels: [*]u8,
-    pitch: i32,
+    pitch: c_int,
 } {
     var pixels: *anyopaque = undefined;
-    var pitch: i32 = undefined;
-    if (SDL_LockTexture(texture, rect, &pixels, &pitch) == False) {
+    var pitch: c_int = undefined;
+    if (!SDL_LockTexture(texture, rect, &pixels, &pitch)) {
         return makeError();
     }
     return .{
@@ -414,7 +433,7 @@ extern fn SDL_LockTexture(
     rect: ?*Rect,
     pixels: **anyopaque,
     pitch: *c_int,
-) c_int;
+) bool;
 
 pub const unlockTexture = SDL_UnlockTexture;
 extern fn SDL_UnlockTexture(texture: *Texture) void;
@@ -458,20 +477,24 @@ extern fn SDL_GetRenderDriver(index: c_int) ?[*:0]const u8;
 /// Create a window and default renderer.
 pub fn createWindowAndRenderer(
     window_title: ?[*:0]const u8,
-    width: u32,
-    height: u32,
+    width: c_int,
+    height: c_int,
     window_flags: Window.Flags,
     window: **Window,
     renderer: **Renderer,
 ) Error!void {
-    if (SDL_CreateWindowAndRenderer(
+    assert(width > 0);
+    assert(height > 0);
+    if (!SDL_CreateWindowAndRenderer(
         window_title,
-        @bitCast(width),
-        @bitCast(height),
+        width,
+        height,
         window_flags,
         @ptrCast(window),
         @ptrCast(renderer),
-    ) == False) return makeError();
+    )) {
+        return makeError();
+    }
 }
 extern fn SDL_CreateWindowAndRenderer(
     title: ?[*:0]const u8,
@@ -480,7 +503,7 @@ extern fn SDL_CreateWindowAndRenderer(
     window_flags: Window.Flags,
     window: ?*?*Window,
     renderer: ?*?*Renderer,
-) c_int;
+) bool;
 
 /// Create a 2D rendering context for a window.
 ///
@@ -496,10 +519,13 @@ extern fn SDL_CreateWindowAndRenderer(
 /// By default the rendering size matches the window size in pixels, but you
 /// can call SDL_SetRenderLogicalPresentation() to change the content size and
 /// scaling options.
-pub fn createRenderer(window: *Window, name: ?[*:0]const u8, flags: Renderer.Flags) Error!*Renderer {
-    return SDL_CreateRenderer(window, name, flags) orelse makeError();
+pub fn createRenderer(window: *Window, maybe_name: ?[:0]const u8) Error!*Renderer {
+    return SDL_CreateRenderer(
+        window,
+        if (maybe_name) |name| @as([*c]const u8, @ptrCast(name.ptr)) else null,
+    ) orelse makeError();
 }
-extern fn SDL_CreateRenderer(window: *Window, name: ?[*:0]const u8, flags: Renderer.Flags) ?*Renderer;
+extern fn SDL_CreateRenderer(window: *Window, name: [*c]const u8) ?*Renderer;
 
 // TODO
 
@@ -522,9 +548,9 @@ pub const ScaleMode = enum(c_int) {
 };
 
 pub fn renderClear(r: *Renderer) !void {
-    if (SDL_RenderClear(r) == False) return makeError();
+    if (!SDL_RenderClear(r)) return makeError();
 }
-extern fn SDL_RenderClear(r: *Renderer) i32;
+extern fn SDL_RenderClear(r: *Renderer) bool;
 
 pub const renderPresent = SDL_RenderPresent;
 extern fn SDL_RenderPresent(r: *Renderer) void;
@@ -535,14 +561,16 @@ pub fn renderTexture(
     src: ?*const FRect,
     dst: ?*const FRect,
 ) Error!void {
-    if (SDL_RenderTexture(r, tex, src, dst) == False) return makeError();
+    if (!SDL_RenderTexture(r, tex, src, dst)) {
+        return makeError();
+    }
 }
 extern fn SDL_RenderTexture(
     r: *Renderer,
     t: *Texture,
     srcrect: ?*const FRect,
     dstrect: ?*const FRect,
-) c_int;
+) bool;
 
 pub fn renderTextureRotated(
     r: *Renderer,
@@ -553,7 +581,9 @@ pub fn renderTextureRotated(
     center: ?*const FPoint,
     flip: Surface.FlipMode,
 ) Error!void {
-    if (SDL_RenderTextureRotated(r, tex, src, dst, angle, center, flip) == False) return makeError();
+    if (!SDL_RenderTextureRotated(r, tex, src, dst, angle, center, flip)) {
+        return makeError();
+    }
 }
 extern fn SDL_RenderTextureRotated(
     r: *Renderer,
@@ -563,101 +593,101 @@ extern fn SDL_RenderTextureRotated(
     angle: f64,
     center: ?*const FPoint,
     flip: Surface.FlipMode,
-) c_int;
+) bool;
 
 pub fn setRenderScale(renderer: *Renderer, x: f32, y: f32) Error!void {
-    if (SDL_SetRenderScale(renderer, x, y) == False) return makeError();
+    if (!SDL_SetRenderScale(renderer, x, y)) return makeError();
 }
-extern fn SDL_SetRenderScale(renderer: *Renderer, scaleX: f32, scaleY: f32) c_int;
+extern fn SDL_SetRenderScale(renderer: *Renderer, scaleX: f32, scaleY: f32) bool;
 
 pub fn renderLine(renderer: *Renderer, x0: f32, y0: f32, x1: f32, y1: f32) Error!void {
-    if (SDL_RenderLine(renderer, x0, y0, x1, y1) == False) return makeError();
+    if (!SDL_RenderLine(renderer, x0, y0, x1, y1)) return makeError();
 }
-extern fn SDL_RenderLine(renderer: *Renderer, x1: f32, y1: f32, x2: f32, y2: f32) c_int;
+extern fn SDL_RenderLine(renderer: *Renderer, x1: f32, y1: f32, x2: f32, y2: f32) bool;
 
 pub fn renderPoint(renderer: *Renderer, x: f32, y: f32) Error!void {
-    if (SDL_RenderPoint(renderer, x, y) == False) return makeError();
+    if (!SDL_RenderPoint(renderer, x, y)) return makeError();
 }
-extern fn SDL_RenderPoint(renderer: *Renderer, x: f32, y: f32) c_int;
+extern fn SDL_RenderPoint(renderer: *Renderer, x: f32, y: f32) bool;
 
 pub fn renderFillRect(renderer: *Renderer, _rect: FRect) Error!void {
-    if (SDL_RenderFillRect(renderer, &_rect) == False) return makeError();
+    if (!SDL_RenderFillRect(renderer, &_rect)) return makeError();
 }
-extern fn SDL_RenderFillRect(renderer: ?*Renderer, rect: *const FRect) c_int;
+extern fn SDL_RenderFillRect(renderer: ?*Renderer, rect: *const FRect) bool;
 
 pub fn renderRect(renderer: *Renderer, _rect: FRect) Error!void {
-    if (SDL_RenderRect(renderer, &_rect) == False) return makeError();
+    if (!SDL_RenderRect(renderer, &_rect)) return makeError();
 }
-extern fn SDL_RenderRect(renderer: *Renderer, rect: *const FRect) c_int;
+extern fn SDL_RenderRect(renderer: *Renderer, rect: *const FRect) bool;
 
 pub fn renderGeometry(
     r: *Renderer,
     tex: ?*const Texture,
     vertices: []const Vertex,
-    indices: ?[]const u32,
+    maybe_indices: ?[]const c_int,
 ) Error!void {
-    if (SDL_RenderGeometry(
+    if (!SDL_RenderGeometry(
         r,
         tex,
         vertices.ptr,
-        @as(i32, @intCast(vertices.len)),
-        if (indices) |idx| @as([*]const i32, @ptrCast(idx.ptr)) else null,
-        if (indices) |idx| @as(i32, @intCast(idx.len)) else 0,
-    ) == False)
+        @intCast(vertices.len),
+        if (maybe_indices) |indices| indices.ptr else null,
+        if (maybe_indices) |indices| @intCast(indices.len) else 0,
+    )) {
         return makeError();
+    }
 }
 extern fn SDL_RenderGeometry(
     renderer: *Renderer,
     texture: ?*const Texture,
     vertices: [*c]const Vertex,
-    num_vertices: i32,
-    indices: [*c]const i32,
-    num_indices: i32,
-) c_int;
+    num_vertices: c_int,
+    indices: [*c]const c_int,
+    num_indices: c_int,
+) bool;
 
 pub fn setRenderDrawColor(renderer: *Renderer, color: Color) Error!void {
-    if (SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a) == False) {
+    if (!SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a)) {
         return makeError();
     }
 }
-extern fn SDL_SetRenderDrawColor(renderer: *Renderer, r: u8, g: u8, b: u8, a: u8) c_int;
+extern fn SDL_SetRenderDrawColor(renderer: *Renderer, r: u8, g: u8, b: u8, a: u8) bool;
 
 pub fn getRenderDrawColor(renderer: *const Renderer) Error!Color {
     var color: Color = undefined;
-    if (SDL_GetRenderDrawColor(renderer, &color.r, &color.g, &color.b, &color.a) == False) {
+    if (!SDL_GetRenderDrawColor(renderer, &color.r, &color.g, &color.b, &color.a)) {
         return makeError();
     }
     return color;
 }
-extern fn SDL_GetRenderDrawColor(renderer: *const Renderer, r: *u8, g: *u8, b: *u8, a: *u8) c_int;
+extern fn SDL_GetRenderDrawColor(renderer: *const Renderer, r: *u8, g: *u8, b: *u8, a: *u8) bool;
 
 pub fn getRenderDrawBlendMode(r: *const Renderer) Error!BlendMode {
     var blend_mode: BlendMode = undefined;
-    if (SDL_GetRenderDrawBlendMode(r, &blend_mode) == False) return makeError();
+    if (!SDL_GetRenderDrawBlendMode(r, &blend_mode)) return makeError();
     return blend_mode;
 }
-extern fn SDL_GetRenderDrawBlendMode(renderer: *const Renderer, blendMode: *BlendMode) c_int;
+extern fn SDL_GetRenderDrawBlendMode(renderer: *const Renderer, blendMode: *BlendMode) bool;
 
 pub fn setRenderDrawBlendMode(r: *Renderer, blend_mode: BlendMode) Error!void {
-    if (SDL_SetRenderDrawBlendMode(r, blend_mode) == False) return makeError();
+    if (!SDL_SetRenderDrawBlendMode(r, blend_mode)) return makeError();
 }
-extern fn SDL_SetRenderDrawBlendMode(renderer: *Renderer, blendMode: BlendMode) c_int;
+extern fn SDL_SetRenderDrawBlendMode(renderer: *Renderer, blendMode: BlendMode) bool;
 
-pub fn getCurrentRenderOutputSize(r: *const Renderer) Error!struct { w: i32, h: i32 } {
-    var w: i32 = undefined;
-    var h: i32 = undefined;
-    if (SDL_GetCurrentRenderOutputSize(r, &w, &h) == False) return makeError();
-    return .{ .w = w, .h = h };
+pub fn getCurrentRenderOutputSize(r: *const Renderer, w: ?*c_int, h: ?*c_int) Error!void {
+    if (!SDL_GetCurrentRenderOutputSize(r, w, h)) return makeError();
 }
-extern fn SDL_GetCurrentRenderOutputSize(renderer: *const Renderer, w: *i32, h: *i32) c_int;
+extern fn SDL_GetCurrentRenderOutputSize(renderer: *const Renderer, w: ?*c_int, h: ?*c_int) bool;
 
 pub fn createTexture(
     renderer: *Renderer,
     format: PixelFormatEnum,
     access: TextureAccess,
-    width: i32,
-    height: i32,
+    width: c_int,
+    height: c_int,
 ) Error!*Texture {
+    assert(width > 0);
+    assert(height > 0);
     return SDL_CreateTexture(renderer, format, access, width, height) orelse makeError();
 }
 extern fn SDL_CreateTexture(
@@ -673,88 +703,89 @@ pub fn createTextureFromSurface(renderer: *Renderer, surface: *Surface) Error!*T
 }
 extern fn SDL_CreateTextureFromSurface(renderer: *Renderer, surface: *Surface) ?*Texture;
 
-pub fn renderClipEnabled(renderer: *const Renderer) bool {
-    return SDL_RenderClipEnabled(renderer) == True;
-}
-pub extern fn SDL_RenderClipEnabled(renderer: *const Renderer) Bool;
+pub const renderClipEnabled = SDL_RenderClipEnabled;
+pub extern fn SDL_RenderClipEnabled(renderer: *const Renderer) bool;
 
 pub fn setRenderClipRect(r: *Renderer, clip_rect: ?*const Rect) Error!void {
-    if (SDL_SetRenderClipRect(r, clip_rect) == False) return makeError();
+    if (!SDL_SetRenderClipRect(r, clip_rect)) return makeError();
 }
-extern fn SDL_SetRenderClipRect(renderer: *Renderer, rect: ?*const Rect) c_int;
+extern fn SDL_SetRenderClipRect(renderer: *Renderer, rect: ?*const Rect) bool;
 
 pub fn getRenderClipRect(r: *Renderer) Error!Rect {
     var clip_rect: Rect = undefined;
-    if (SDL_GetRenderClipRect(r, &clip_rect) == False) return makeError();
+    if (!SDL_GetRenderClipRect(r, &clip_rect)) return makeError();
     return clip_rect;
 }
-extern fn SDL_GetRenderClipRect(renderer: *Renderer, rect: ?*Rect) c_int;
+extern fn SDL_GetRenderClipRect(renderer: *Renderer, rect: ?*Rect) bool;
 
 pub fn getRenderLogicalPresentation(
     renderer: *const Renderer,
-    w: *i32,
-    h: *i32,
+    w: *c_int,
+    h: *c_int,
     mode: *RendererLogicalPresentationMode,
     scale_mode: *ScaleMode,
 ) Error!void {
-    if (SDL_GetRenderLogicalPresentation(renderer, w, h, mode, scale_mode) == False) {
+    if (!SDL_GetRenderLogicalPresentation(renderer, w, h, mode, scale_mode)) {
         return makeError();
     }
 }
 extern fn SDL_GetRenderLogicalPresentation(
     renderer: *const Renderer,
-    w: *i32,
-    h: *i32,
+    w: *c_int,
+    h: *c_int,
     mode: *RendererLogicalPresentationMode,
     scale_mode: *ScaleMode,
-) c_int;
+) bool;
 
 pub fn setRenderLogicalPresentation(
     renderer: *Renderer,
-    w: i32,
-    h: i32,
+    w: c_int,
+    h: c_int,
     mode: RendererLogicalPresentationMode,
     scale_mode: ScaleMode,
 ) Error!void {
-    if (SDL_SetRenderLogicalPresentation(renderer, w, h, mode, scale_mode) == False) {
+    if (!SDL_SetRenderLogicalPresentation(renderer, w, h, mode, scale_mode)) {
         return makeError();
     }
 }
 extern fn SDL_SetRenderLogicalPresentation(
     renderer: *Renderer,
-    w: i32,
-    h: i32,
+    w: c_int,
+    h: c_int,
     mode: RendererLogicalPresentationMode,
     scale_mode: ScaleMode,
-) c_int;
+) bool;
 
 pub fn getRenderViewport(renderer: *const Renderer) Error!Rect {
     var viewport: Rect = undefined;
-    if (SDL_GetRenderViewport(renderer, &viewport) == False) return makeError();
-    return viewport;
-}
-extern fn SDL_GetRenderViewport(renderer: *const Renderer, rect: *Rect) c_int;
-
-pub fn setRenderViewport(renderer: *Renderer, maybe_rect: ?*const Rect) Error!void {
-    if (SDL_SetRenderViewport(renderer, maybe_rect) == False) {
+    if (SDL_GetRenderViewport(renderer, &viewport)) {
+        return viewport;
+    } else {
         return makeError();
     }
 }
-extern fn SDL_SetRenderViewport(renderer: *Renderer, rect: ?*const Rect) c_int;
+extern fn SDL_GetRenderViewport(renderer: *const Renderer, rect: *Rect) bool;
+
+pub fn setRenderViewport(renderer: *Renderer, maybe_rect: ?*const Rect) Error!void {
+    if (!SDL_SetRenderViewport(renderer, maybe_rect)) {
+        return makeError();
+    }
+}
+extern fn SDL_SetRenderViewport(renderer: *Renderer, rect: ?*const Rect) bool;
 
 pub fn setRenderTarget(r: *Renderer, tex: ?*const Texture) Error!void {
-    if (SDL_SetRenderTarget(r, tex) == False) return makeError();
+    if (!SDL_SetRenderTarget(r, tex)) return makeError();
 }
-extern fn SDL_SetRenderTarget(renderer: *Renderer, texture: ?*const Texture) c_int;
+extern fn SDL_SetRenderTarget(renderer: *Renderer, texture: ?*const Texture) bool;
 
 pub fn renderReadPixels(
     renderer: *const Renderer,
     _rect: ?*const Rect,
     format: PixelFormatEnum,
     pixels: [*]u8,
-    pitch: i32,
+    pitch: c_int,
 ) Error!void {
-    if (SDL_RenderReadPixels(renderer, _rect, format, pixels, pitch) == False) {
+    if (!SDL_RenderReadPixels(renderer, _rect, format, pixels, pitch)) {
         return makeError();
     }
 }
@@ -764,12 +795,12 @@ extern fn SDL_RenderReadPixels(
     format: PixelFormatEnum,
     pixels: ?*anyopaque,
     pitch: c_int,
-) c_int;
+) bool;
 
 pub fn renderDebugText(renderer: *Renderer, x: f32, y: f32, str: [*:0]const u8) Error!void {
-    if (SDL_RenderDebugText(renderer, x, y, str) == False) return makeError();
+    if (!SDL_RenderDebugText(renderer, x, y, str)) return makeError();
 }
-extern fn SDL_RenderDebugText(renderer: *Renderer, x: f32, y: f32, str: [*:0]const u8) Bool;
+extern fn SDL_RenderDebugText(renderer: *Renderer, x: f32, y: f32, str: [*:0]const u8) bool;
 
 //--------------------------------------------------------------------------------------------------
 //
@@ -794,7 +825,7 @@ pub const PixelType = enum(c_int) {
     arrayu32,
     arrayf16,
     arrayf32,
-    // appended at end for compatibilty with sdl2-compat
+    // appended at end for compatibility with sdl2-compat
     index2,
 };
 
@@ -950,10 +981,10 @@ pub const FColor = extern struct {
 //
 //--------------------------------------------------------------------------------------------------
 pub const Rect = extern struct {
-    x: i32,
-    y: i32,
-    w: i32,
-    h: i32,
+    x: c_int,
+    y: c_int,
+    w: c_int,
+    h: c_int,
 
     pub fn hasIntersection(a: *const Rect, b: *const Rect) bool {
         return hasRectIntersection(a, b);
@@ -968,32 +999,20 @@ pub const Rect = extern struct {
     }
 };
 
-pub fn hasRectIntersection(a: *const Rect, b: *const Rect) bool {
-    return SDL_HasRectIntersection(a, b) == True;
-}
-extern fn SDL_HasRectIntersection(a: *const Rect, b: *const Rect) Bool;
+pub const hasRectIntersection = SDL_HasRectIntersection;
+extern fn SDL_HasRectIntersection(a: *const Rect, b: *const Rect) bool;
 
-pub fn getRectIntersection(a: *const Rect, b: *const Rect, result: *Rect) bool {
-    return SDL_GetRectIntersection(a, b, result) == True;
-}
-extern fn SDL_GetRectIntersection(a: *const Rect, b: *const Rect, result: *Rect) Bool;
+pub const getRectIntersection = SDL_GetRectIntersection;
+extern fn SDL_GetRectIntersection(a: *const Rect, b: *const Rect, result: *Rect) bool;
 
-pub fn getRectAndLineIntersection(
-    r: *const Rect,
-    x1: *i32,
-    y1: *i32,
-    x2: *i32,
-    y2: *i32,
-) bool {
-    return SDL_GetRectAndLineIntersection(r, x1, y1, x2, y2) == True;
-}
+pub const getRectAndLineIntersection = SDL_GetRectAndLineIntersection;
 extern fn SDL_GetRectAndLineIntersection(
     r: *const Rect,
-    x1: *i32,
-    y1: *i32,
-    x2: *i32,
-    y2: *i32,
-) Bool;
+    x1: *c_int,
+    y1: *c_int,
+    x2: *c_int,
+    y2: *c_int,
+) bool;
 
 pub const FRect = extern struct {
     x: f32,
@@ -1014,25 +1033,13 @@ pub const FRect = extern struct {
     }
 };
 
-pub fn hasRectIntersectionFloat(a: *const FRect, b: *const FRect) bool {
-    return SDL_HasRectIntersectionFloat(a, b) == True;
-}
-extern fn SDL_HasRectIntersectionFloat(a: *const FRect, b: *const FRect) Bool;
+pub const hasRectIntersectionFloat = SDL_HasRectIntersectionFloat;
+extern fn SDL_HasRectIntersectionFloat(a: *const FRect, b: *const FRect) bool;
 
-pub fn getRectIntersectionFloat(a: *const FRect, b: *const FRect, result: *FRect) bool {
-    return SDL_GetRectIntersectionFloat(a, b, result) == True;
-}
-extern fn SDL_GetRectIntersectionFloat(a: *const FRect, b: *const FRect, result: *FRect) Bool;
+pub const getRectIntersectionFloat = SDL_GetRectIntersectionFloat;
+extern fn SDL_GetRectIntersectionFloat(a: *const FRect, b: *const FRect, result: *FRect) bool;
 
-pub fn getRectAndLineIntersectionFloat(
-    r: *const FRect,
-    x1: *f32,
-    y1: *f32,
-    x2: *f32,
-    y2: *f32,
-) bool {
-    return SDL_GetRectAndLineIntersectionFloat(r, x1, y1, x2, y2);
-}
+pub const getRectAndLineIntersectionFloat = SDL_GetRectAndLineIntersectionFloat;
 extern fn SDL_GetRectAndLineIntersectionFloat(
     r: *const FRect,
     x1: *f32,
@@ -1042,8 +1049,8 @@ extern fn SDL_GetRectAndLineIntersectionFloat(
 ) bool;
 
 pub const Point = extern struct {
-    x: i32,
-    y: i32,
+    x: c_int,
+    y: c_int,
 };
 
 pub const FPoint = extern struct {
@@ -1165,24 +1172,18 @@ pub const vk = struct {
     pub const Instance = enum(usize) { null_handle = 0, _ };
 
     pub fn loadLibrary(path: ?[*:0]const u8) Error!void {
-        if (SDL_Vulkan_LoadLibrary(path) == False) return makeError();
+        if (!SDL_Vulkan_LoadLibrary(@ptrCast(path))) return makeError();
     }
-    extern fn SDL_Vulkan_LoadLibrary(path: ?[*]const u8) i32;
+    extern fn SDL_Vulkan_LoadLibrary(path: [*c]const u8) bool;
 
-    pub fn getVkGetInstanceProcAddr() FunctionPointer {
-        return SDL_Vulkan_GetVkGetInstanceProcAddr();
-    }
+    pub const getVkGetInstanceProcAddr = SDL_Vulkan_GetVkGetInstanceProcAddr;
     extern fn SDL_Vulkan_GetVkGetInstanceProcAddr() FunctionPointer;
 
-    pub fn unloadLibrary() void {
-        SDL_Vulkan_UnloadLibrary();
-    }
+    pub const unloadLibrary = SDL_Vulkan_UnloadLibrary;
     extern fn SDL_Vulkan_UnloadLibrary() void;
 
-    pub fn getInstanceExtensions(count: *i32) ?[*][*:0]u8 {
-        return SDL_Vulkan_GetInstanceExtensions(count);
-    }
-    extern fn SDL_Vulkan_GetInstanceExtensions(count: *i32) ?[*][*:0]u8;
+    pub const getInstanceExtensions = SDL_Vulkan_GetInstanceExtensions;
+    extern fn SDL_Vulkan_GetInstanceExtensions(count: *u32) [*c]const [*c]const u8;
 
     pub fn createSurface(
         window: *Window,
@@ -1367,7 +1368,7 @@ pub const EventType = enum(u32) {
 
 pub const CommonEvent = extern struct {
     type: EventType,
-    reerved: u32,
+    reserved: u32,
     timestamp: u64,
 };
 
@@ -1406,8 +1407,8 @@ pub const KeyboardEvent = extern struct {
     key: Keycode,
     mod: Keymod,
     raw: u16,
-    down: Bool,
-    repeat: Bool,
+    down: bool,
+    repeat: bool,
 };
 
 pub const TextEditingEvent = extern struct {
@@ -1428,7 +1429,7 @@ pub const TextEditingCandidatesEvent = extern struct {
     candidates: *const [*:0]const u8,
     num_candidates: i32,
     selected_candidate: i32,
-    horizontal: Bool,
+    horizontal: bool,
     // padding
     _: u8,
     __: u8,
@@ -1470,7 +1471,7 @@ pub const MouseButtonEvent = extern struct {
     window_id: WindowId,
     which: MouseId,
     button: u8,
-    down: Bool,
+    down: bool,
     clicks: u8,
     _: u8, // padding
     x: f32,
@@ -1534,7 +1535,7 @@ pub const JoyButtonEvent = extern struct {
     timestamp: u64,
     which: Joystick.Id,
     button: u8,
-    down: Bool,
+    down: bool,
     _: u16, // padding
 };
 
@@ -1574,7 +1575,7 @@ pub const GamepadButtonEvent = extern struct {
     timestamp: u64,
     which: Joystick.Id,
     button: u8,
-    down: Bool,
+    down: bool,
     _: u16, // padding
 };
 
@@ -1612,7 +1613,7 @@ pub const AudioDeviceEvent = extern struct {
     reserved: u32,
     timestamp: u64,
     which: AudioDeviceId,
-    recording: Bool,
+    recording: bool,
     // padding
     _: u8,
     __: u8,
@@ -1675,8 +1676,8 @@ pub const PenTouchEvent = extern struct {
     pen_state: PenInputFlags,
     x: f32,
     y: f32,
-    eraser: Bool,
-    down: Bool,
+    eraser: bool,
+    down: bool,
 };
 
 pub const PenButtonEvent = extern struct {
@@ -1689,7 +1690,7 @@ pub const PenButtonEvent = extern struct {
     x: f32,
     y: f32,
     button: u8,
-    down: Bool,
+    down: bool,
 };
 
 pub const PenAxisEvent = extern struct {
@@ -1716,7 +1717,7 @@ pub const DropEvent = extern struct {
     data: ?[*:0]const u8,
 };
 
-pub const ClipboardEvent = extern struct { type: EventType, reserved: u32, timestamp: u64, owner: Bool, num_mime_types: i32, mime_types: ?*[*:0]const u8 };
+pub const ClipboardEvent = extern struct { type: EventType, reserved: u32, timestamp: u64, owner: bool, num_mime_types: i32, mime_types: ?*[*:0]const u8 };
 
 pub const SensorEvent = extern struct {
     type: EventType,
@@ -1806,10 +1807,8 @@ pub const EventAction = enum(c_int) {
 // - SDL_FlushEvent
 // - SDL_FlushEvents
 
-pub fn pollEvent(event: ?*Event) bool {
-    return SDL_PollEvent(event) != 0;
-}
-extern fn SDL_PollEvent(event: ?*Event) i32;
+pub const pollEvent = SDL_PollEvent;
+extern fn SDL_PollEvent(event: ?*Event) bool;
 
 // TODO
 // - SDL_WaitEvent
@@ -1817,17 +1816,13 @@ extern fn SDL_PollEvent(event: ?*Event) i32;
 
 /// You should set the common.timestamp field before passing an event to `pushEvent`.
 /// If the timestamp is 0 it will be filled in with `getTicksNS()`.
-/// Returns true if event was added
-///         false if event was filtered out
-pub fn pushEvent(event: *Event) Error!bool {
-    const status = SDL_PushEvent(event);
-    if (status == False) return makeError();
-    return status == 1;
-}
-extern fn SDL_PushEvent(event: *Event) c_int;
+/// Returns true if event was added, false if event was filtered out or on failure;
+/// call SDL_GetError() for more information.
+pub const pushEvent = SDL_PushEvent;
+extern fn SDL_PushEvent(event: *Event) bool;
 
 /// A function pointer used for callbacks that watch the event queue.
-pub const EventFilter = fn (userdata: ?*anyopaque, event: *Event) Bool;
+pub const EventFilter = fn (userdata: ?*anyopaque, event: *Event) bool;
 
 /// TODO
 // - SDL_SetEventFilter
@@ -2421,12 +2416,15 @@ pub const KeyboardId = u32;
 // - SDL_GetKeyboardNameForID
 // - SDL_GetKeyboardFocus
 
-pub fn getKeyboardState() []const u8 {
+pub fn getKeyboardState() []const bool {
     var numkeys: i32 = 0;
-    const ptr = SDL_GetKeyboardState(&numkeys).?;
-    return ptr[0..@as(usize, @intCast(numkeys))];
+    if (SDL_GetKeyboardState(&numkeys)) |ptr| {
+        return ptr[0..@as(usize, @intCast(numkeys))];
+    } else {
+        return &[_]bool{};
+    }
 }
-extern fn SDL_GetKeyboardState(numkeys: ?*i32) ?[*]const u8;
+extern fn SDL_GetKeyboardState(numkeys: ?*c_int) [*c]const bool;
 
 // TODO
 // - SDL_ResetKeyboard
@@ -2548,17 +2546,17 @@ extern fn SDL_GetMouseState(x: ?*f32, y: ?*f32) u32;
 // - SDL_DestroyCursor
 
 pub fn showCursor() Error!void {
-    if (SDL_ShowCursor() == False) return makeError();
+    if (!SDL_ShowCursor()) return makeError();
 }
-extern fn SDL_ShowCursor() c_int;
+extern fn SDL_ShowCursor() bool;
 
 pub fn hideCursor() Error!void {
-    if (SDL_HideCursor() == False) return makeError();
+    if (!SDL_HideCursor()) return makeError();
 }
-extern fn SDL_HideCursor() c_int;
+extern fn SDL_HideCursor() bool;
 
 pub const cursorVisible = SDL_CursorVisible;
-extern fn SDL_CursorVisible() Bool;
+extern fn SDL_CursorVisible() bool;
 
 //--------------------------------------------------------------------------------------------------
 //
@@ -2638,6 +2636,7 @@ pub const PenAxis = enum(c_int) {
 // Joystick Support (SDL_joystick.h)
 //
 //--------------------------------------------------------------------------------------------------
+
 pub const Joystick = struct {
     pub const Id = u32;
 
@@ -2808,10 +2807,8 @@ pub const Gamepad = opaque {
 // - SDL_GetRealGamepadTypeForID
 // - SDL_GetGamepadMappingForID
 
-pub fn openGamepad(joystick_index: i32) ?*Gamepad {
-    return SDL_OpenGamepad(joystick_index);
-}
-extern fn SDL_OpenGamepad(joystick_index: i32) ?*Gamepad;
+pub const openGamepad = SDL_OpenGamepad;
+extern fn SDL_OpenGamepad(joystick_index: Joystick.Id) ?*Gamepad;
 
 // TODO
 // - SDL_GetGamepadFromID
@@ -2844,10 +2841,8 @@ extern fn SDL_OpenGamepad(joystick_index: i32) ?*Gamepad;
 // - SDL_GetGamepadStringForAxis
 // - SDL_GamepadHasAxis
 
-pub fn getGamepadAxis(controller: *Gamepad, axis: Gamepad.Axis) i16 {
-    return SDL_GetGamepadAxis(controller, @intFromEnum(axis));
-}
-extern fn SDL_GetGamepadAxis(*Gamepad, axis: c_int) i16;
+pub const getGamepadAxis = SDL_GetGamepadAxis;
+extern fn SDL_GetGamepadAxis(*Gamepad, axis: Gamepad.Axis) i16;
 
 // TODO
 // - SDL_GetGamepadButtonFromString
@@ -2855,10 +2850,8 @@ extern fn SDL_GetGamepadAxis(*Gamepad, axis: c_int) i16;
 // - SDL_GamepadHasButton
 // - SDL_GetGamepadButton
 
-pub fn getGamepadButton(controller: *Gamepad, button: Gamepad.Button) bool {
-    return (SDL_GetGamepadButton(controller, @intFromEnum(button)) == False);
-}
-extern fn SDL_GetGamepadButton(controller: *Gamepad, button: c_int) u8;
+pub const getGamepadButton = SDL_GetGamepadButton;
+extern fn SDL_GetGamepadButton(*Gamepad, Gamepad.Button) bool;
 
 // TODO
 // - SDL_GetGamepadButtonLabelForType
@@ -2876,9 +2869,7 @@ extern fn SDL_GetGamepadButton(controller: *Gamepad, button: c_int) u8;
 // - SDL_SetGamepadLED
 // - SDL_SendGamepadEffect
 
-pub fn closeGamepad(controller: *Gamepad) void {
-    SDL_CloseGamepad(controller);
-}
+pub const closeGamepad = SDL_CloseGamepad;
 extern fn SDL_CloseGamepad(joystick: *Gamepad) void;
 
 //--------------------------------------------------------------------------------------------------
@@ -3030,19 +3021,25 @@ pub fn getAudioRecordingDevices() Error![]AudioDeviceId {
 extern fn SDL_GetAudioRecordingDevices(out_count: ?*c_int) ?[*]AudioDeviceId;
 
 /// Get the human-readable name of a specific audio device.
-pub const getAudioDeviceName = SDL_GetAudioDeviceName;
-extern fn SDL_GetAudioDeviceName(AudioDeviceId) [*:0]const u8;
+pub fn getAudioDeviceName(devid: AudioDeviceId) Error![:0]const u8 {
+    if (SDL_GetAudioDeviceName(devid)) |name| {
+        return std.mem.span(name);
+    } else {
+        return makeError();
+    }
+}
+extern fn SDL_GetAudioDeviceName(AudioDeviceId) [*c]const u8;
 
 /// Get the current audio format of a specific audio device.
 pub fn getAudioDeviceFormat(devid: AudioDeviceId) Error!struct { spec: AudioSpec, sample_frames: c_int } {
     var spec: AudioSpec = undefined;
     var sample_frames: c_int = undefined;
-    if (SDL_GetAudioDeviceFormat(devid, &spec, &sample_frames) == False) {
+    if (!SDL_GetAudioDeviceFormat(devid, &spec, &sample_frames)) {
         return makeError();
     }
     return .{ .spec = spec, .sample_frames = sample_frames };
 }
-extern fn SDL_GetAudioDeviceFormat(AudioDeviceId, out_spec: *AudioSpec, out_sample_frames: *c_int) Bool;
+extern fn SDL_GetAudioDeviceFormat(AudioDeviceId, out_spec: *AudioSpec, out_sample_frames: *c_int) bool;
 
 /// Get the current audio format of a specific audio device.
 /// Channel maps are optional; most things do not need them, instead passing
@@ -3068,15 +3065,11 @@ pub fn openAudioDevice(device: AudioDeviceId, spec: ?*const AudioSpec) Error!voi
 }
 extern fn SDL_OpenAudioDevice(AudioDeviceId, ?*const AudioSpec) AudioDeviceId;
 
-pub fn isAudioDevicePhysical(devid: AudioDeviceId) bool {
-    return SDL_IsAudioDevicePhysical(devid) == True;
-}
-extern fn SDL_IsAudioDevicePhysical(AudioDeviceId) Bool;
+pub const isAudioDevicePhysical = SDL_IsAudioDevicePhysical;
+extern fn SDL_IsAudioDevicePhysical(AudioDeviceId) bool;
 
-pub fn isAudioDevicePlayback(devid: AudioDeviceId) bool {
-    return SDL_IsAudioDevicePlayback(devid) == True;
-}
-extern fn SDL_IsAudioDevicePlayback(AudioDeviceId) Bool;
+pub const isAudioDevicePlayback = SDL_IsAudioDevicePlayback;
+extern fn SDL_IsAudioDevicePlayback(AudioDeviceId) bool;
 
 /// Use this function to pause audio playback on a specified device.
 ///
@@ -3094,10 +3087,8 @@ extern fn SDL_IsAudioDevicePlayback(AudioDeviceId) Bool;
 ///
 /// Physical devices can not be paused or unpaused, only logical devices
 /// created through SDL_OpenAudioDevice() can be.
-pub fn pauseAudioDevice(device: AudioDeviceId) bool {
-    return SDL_PauseAudioDevice(device) == True;
-}
-extern fn SDL_PauseAudioDevice(AudioDeviceId) Bool;
+pub const pauseAudioDevice = SDL_PauseAudioDevice;
+extern fn SDL_PauseAudioDevice(AudioDeviceId) bool;
 
 /// Use this function to unpause audio playback on a specified device.
 ///
@@ -3112,10 +3103,8 @@ extern fn SDL_PauseAudioDevice(AudioDeviceId) Bool;
 ///
 /// Physical devices can not be paused or unpaused, only logical devices
 /// created through SDL_OpenAudioDevice() can be.
-pub fn resumeAudioDevice(device: AudioDeviceId) bool {
-    return SDL_ResumeAudioDevice(device) == True;
-}
-extern fn SDL_ResumeAudioDevice(AudioDeviceId) Bool;
+pub const resumeAudioDevice = SDL_ResumeAudioDevice;
+extern fn SDL_ResumeAudioDevice(AudioDeviceId) bool;
 
 /// Use this function to query if an audio device is paused.
 ///
@@ -3125,10 +3114,8 @@ extern fn SDL_ResumeAudioDevice(AudioDeviceId) Bool;
 ///
 /// Physical devices can not be paused or unpaused, only logical devices
 /// created through SDL_OpenAudioDevice() can be.
-pub fn audioDevicePaused(device: AudioDeviceId) bool {
-    return SDL_AudioDevicePaused(device) == True;
-}
-extern fn SDL_AudioDevicePaused(AudioDeviceId) Bool;
+pub const audioDevicePaused = SDL_AudioDevicePaused;
+extern fn SDL_AudioDevicePaused(AudioDeviceId) bool;
 
 /// Get the gain of an audio device.
 ///
@@ -3155,11 +3142,11 @@ extern fn SDL_GetAudioDeviceGain(AudioDeviceId) f32;
 /// when outputting the data elsewhere, if it likes, but that second gain is
 /// not applied until the data leaves the audiostream again.
 pub fn setAudioDeviceGain(device: AudioDeviceId, gain: f32) Error!void {
-    if (SDL_SetAudioDeviceGain(device, gain) == False) {
+    if (!SDL_SetAudioDeviceGain(device, gain)) {
         return makeError();
     }
 }
-extern fn SDL_SetAudioDeviceGain(AudioDeviceId, f32) Bool;
+extern fn SDL_SetAudioDeviceGain(AudioDeviceId, f32) bool;
 
 /// Close a previously-opened audio device.
 ///
@@ -3209,7 +3196,7 @@ extern fn SDL_GetAudioStreamDevice(*AudioStream) AudioDeviceId;
 /// different than SDL2, where data was converted during the Put call and the
 /// Get call would just dequeue the previously-converted data.
 pub fn putAudioStreamData(comptime SampleType: type, stream: *AudioStream, data: []const SampleType) Error!void {
-    if (SDL_PutAudioStreamData(stream, data.ptr, @intCast(@sizeOf(SampleType) * data.len)) == False) {
+    if (!SDL_PutAudioStreamData(stream, @ptrCast(data.ptr), @intCast(@sizeOf(SampleType) * data.len))) {
         return makeError();
     }
 }
@@ -3242,7 +3229,13 @@ extern fn SDL_PutAudioStreamData(*AudioStream, data: *const anyopaque, len: c_in
 // are gigabytes of data queued, the app might need to read some of it with
 // SDL_GetAudioStreamData before this function's return value is no longer
 // clamped.
-pub const getAudioStreamQueued = SDL_GetAudioStreamQueued;
+pub fn getAudioStreamQueued(stream: *AudioStream) Error!usize {
+    const queued = SDL_GetAudioStreamQueued(stream);
+    if (queued < 0) {
+        return makeError();
+    }
+    return @intCast(queued);
+}
 extern fn SDL_GetAudioStreamQueued(*AudioStream) c_int;
 
 /// Tell the stream that you're done sending data, and anything being buffered
@@ -3252,22 +3245,22 @@ extern fn SDL_GetAudioStreamQueued(*AudioStream) c_int;
 /// audio gaps in the output. Generally this is intended to signal the end of
 /// input, so the complete output becomes available.
 pub fn flushAudioStream(stream: *AudioStream) Error!void {
-    if (SDL_FlushAudioStream(stream) == False) {
+    if (!SDL_FlushAudioStream(stream)) {
         return makeError();
     }
 }
-extern fn SDL_FlushAudioStream(*AudioStream) Bool;
+extern fn SDL_FlushAudioStream(*AudioStream) bool;
 
 /// Clear any pending data in the stream.
 ///
 /// This drops any queued data, so there will be nothing to read from the
 /// stream until more is added.
 pub fn clearAudioStream(stream: *AudioStream) Error!void {
-    if (SDL_ClearAudioStream(stream) == False) {
+    if (!SDL_ClearAudioStream(stream)) {
         return makeError();
     }
 }
-extern fn SDL_ClearAudioStream(*AudioStream) Bool;
+extern fn SDL_ClearAudioStream(*AudioStream) bool;
 
 // TODO
 // - SDL_PauseAudioStreamDevice
@@ -3462,18 +3455,20 @@ pub const MessageBoxFlags = packed struct(u32) {
 
 pub fn showSimpleMessageBox(
     flags: MessageBoxFlags,
-    title: [:0]const u8,
-    message: [:0]const u8,
+    title: ?[:0]const u8,
+    message: ?[:0]const u8,
     window: ?*Window,
 ) Error!void {
-    if (SDL_ShowSimpleMessageBox(flags, title, message, window) == False) return makeError();
+    if (!SDL_ShowSimpleMessageBox(flags, @ptrCast(title), @ptrCast(message), window)) {
+        return makeError();
+    }
 }
 extern fn SDL_ShowSimpleMessageBox(
     flags: MessageBoxFlags,
-    title: ?[*:0]const u8,
-    message: ?[*:0]const u8,
+    title: [*c]const u8,
+    message: [*c]const u8,
     window: ?*Window,
-) i32;
+) bool;
 
 //--------------------------------------------------------------------------------------------------
 //
@@ -3486,9 +3481,6 @@ extern fn SDL_ShowSimpleMessageBox(
 // "Standard Library" Functionality
 //
 //--------------------------------------------------------------------------------------------------
-pub const Bool = c_int;
-pub const False = @as(Bool, 0);
-pub const True = @as(Bool, 1);
 
 /// Allocate uinitialized memory.
 ///

@@ -125,10 +125,10 @@ typedef struct SDL_FRect
  */
 SDL_FORCE_INLINE void SDL_RectToFRect(const SDL_Rect *rect, SDL_FRect *frect)
 {
-    frect->x = (float)rect->x;
-    frect->y = (float)rect->y;
-    frect->w = (float)rect->w;
-    frect->h = (float)rect->h;
+    frect->x = SDL_static_cast(float, rect->x);
+    frect->y = SDL_static_cast(float, rect->y);
+    frect->w = SDL_static_cast(float, rect->w);
+    frect->h = SDL_static_cast(float, rect->h);
 }
 
 /**
@@ -371,7 +371,7 @@ SDL_FORCE_INLINE bool SDL_RectEmptyFloat(const SDL_FRect *r)
  *
  * \sa SDL_RectsEqualFloat
  */
-SDL_FORCE_INLINE bool SDL_RectsEqualEpsilon(const SDL_FRect *a, const SDL_FRect *b, const float epsilon)
+SDL_FORCE_INLINE bool SDL_RectsEqualEpsilon(const SDL_FRect *a, const SDL_FRect *b, float epsilon)
 {
     return (a && b && ((a == b) ||
             ((SDL_fabsf(a->x - b->x) <= epsilon) &&
