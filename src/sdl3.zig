@@ -1,3 +1,6 @@
+//! SDL3 bindings for Zig
+//! Ordered by category as per https://wiki.libsdl.org/SDL3/APIByCategory
+
 const builtin = @import("builtin");
 
 const std = @import("std");
@@ -12,7 +15,7 @@ test {
 
 //--------------------------------------------------------------------------------------------------
 //
-// Application entry points
+// Application entry points (SDL_main.h)
 //
 //--------------------------------------------------------------------------------------------------
 
@@ -23,7 +26,7 @@ pub const AppResult = enum(c_int) {
 };
 
 pub const appInit = SDL_AppInit;
-extern fn SDL_AppInit(appstate: ?*?*anyopaque, argc: c_int, argv: ?[*]?[*:0]const u8) AppResult;
+extern fn SDL_AppInit(appstate: ?*?*anyopaque, argc: c_int, argv: [*c][*c]const u8) AppResult;
 
 pub const appIterate = SDL_AppIterate;
 extern fn SDL_AppIterate(appstate: ?*anyopaque) AppResult;
@@ -34,12 +37,27 @@ extern fn SDL_AppEvent(appstate: ?*anyopaque, event: *Event) AppResult;
 pub const appQuit = SDL_AppQuit;
 extern fn SDL_AppQuit(appstate: ?*anyopaque, result: AppResult) void;
 
+pub const AppInit_func = fn (?*?*anyopaque, c_int, [*c][*c]const u8) callconv(.c) AppResult;
+pub const AppIterate_func = fn (?*anyopaque) callconv(.c) AppResult;
+pub const AppEvent_func = fn (?*anyopaque, *Event) callconv(.c) AppResult;
+pub const AppQuit_func = fn (?*anyopaque, AppResult) callconv(.c) void;
+
+pub const enterAppMainCallbacks = SDL_EnterAppMainCallbacks;
+extern fn SDL_EnterAppMainCallbacks(
+    argc: c_int,
+    argv: [*c][*c]u8,
+    appinit: ?*const AppInit_func,
+    appiter: ?*const AppIterate_func,
+    appevent: ?*const AppEvent_func,
+    appquit: ?*const AppQuit_func,
+) c_int;
+
 pub const setMainReady = SDL_SetMainReady;
 extern fn SDL_SetMainReady() void;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Initialization and Shutdown
+// Initialization and Shutdown (SDL_init.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const InitFlags = packed struct(u32) {
@@ -84,7 +102,7 @@ extern fn SDL_Quit() void;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Configuration Variables
+// Configuration Variables (SDL_hints.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const hint_windows_dpi_awareness = "SDL_WINDOWS_DPI_AWARENESS";
@@ -103,7 +121,14 @@ extern fn SDL_SetAppMetadata(appname: [*c]const u8, appversion: [*c]const u8, ap
 
 //--------------------------------------------------------------------------------------------------
 //
-// Error Handling
+// Object Properties (SDL_properties.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// Error Handling (SDL_error.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub fn getError() ?[:0]const u8 {
@@ -125,19 +150,21 @@ pub fn makeError() error{SdlError} {
 
 //--------------------------------------------------------------------------------------------------
 //
-// Log Handling
+// Log Handling (SDL_log.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Assertions
+// Assertions (SDL_assert.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Querying SDL Version
+// Querying SDL Version (SDL_version.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const Version = extern struct {
@@ -157,7 +184,7 @@ extern fn SDL_GetVersion(version: *Version) void;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Display and Window management
+// Display and Window Management (SDL_video.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const DisplayId = u32;
@@ -531,6 +558,12 @@ extern fn SDL_CreateRenderer(window: *Window, name: [*c]const u8) ?*Renderer;
 
 pub const destroyRenderer = SDL_DestroyRenderer;
 extern fn SDL_DestroyRenderer(r: *Renderer) void;
+
+//--------------------------------------------------------------------------------------------------
+//
+// Blend modes (SDL_blendmode.h)
+//
+//--------------------------------------------------------------------------------------------------
 
 pub const BlendMode = enum(c_int) {
     none = 0x00000000,
@@ -1158,13 +1191,14 @@ extern fn SDL_DestroySurface(surface: *Surface) void;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Clipboard Handling
+// Clipboard Handling (SDL_clipboard.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
-///
-// Vulkan Support
+//
+// Vulkan Support (SDL_vulkan.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const vk = struct {
@@ -1204,9 +1238,21 @@ pub const vk = struct {
 
 //--------------------------------------------------------------------------------------------------
 //
-// Metal Support
+// Metal Support (SDL_metal.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// Camera (SDL_camera.h)
+//
+//--------------------------------------------------------------------------------------------------
+pub const CameraId = u32;
+
+pub const Camera = opaque {};
+
+// TODO: Camera API
 
 //--------------------------------------------------------------------------------------------------
 //
@@ -1837,7 +1883,41 @@ pub const EventFilter = fn (userdata: ?*anyopaque, event: *Event) bool;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Keyboard Support (SDL_scancode.h, SDL_keycode.h, SDL_keyboard.h)
+// Keyboard Support (SDL_keyboard.h)
+//
+//--------------------------------------------------------------------------------------------------
+
+pub const KeyboardId = u32;
+
+// TODO
+// - SDL_HasKeyboard
+// - SDL_GetKeyboards
+// - SDL_GetKeyboardNameForID
+// - SDL_GetKeyboardFocus
+// - SDL_GetKeyboardState
+// - SDL_ResetKeyboard
+// - SDL_GetModState
+// - SDL_SetModState
+// - SDL_GetKeyFromScancode
+// - SDL_GetScancodeFromKey
+// - SDL_SetScancodeName
+// - SDL_GetScancodeName
+// - SDL_GetScancodeFromName
+// - SDL_GetKeyName
+// - SDL_GetKeyFromName
+// - SDL_StartTextInput
+// - SDL_StartTextInputWithProperties
+// - SDL_TextInputActive
+// - SDL_StopTextInput
+// - SDL_ClearComposition
+// - SDL_SetTextInputArea
+// - SDL_GetTextInputArea
+// - SDL_HasScreenKeyboardSupport
+// - SDL_ScreenKeyboardShown
+
+//--------------------------------------------------------------------------------------------------
+//
+// Keyboard Scancodes (SDL_scancode.h)
 //
 //--------------------------------------------------------------------------------------------------
 /// The SDL keyboard scancode representation.
@@ -2107,6 +2187,11 @@ pub inline fn SCANCODE_TO_KEYCODE(scancode: u32) u32 {
     return scancode | (1 << 30);
 }
 
+//--------------------------------------------------------------------------------------------------
+//
+// Keyboard Keycodes (SDL_keycode.h)
+//
+//--------------------------------------------------------------------------------------------------
 /// The SDL virtual key representation.
 ///
 /// Values of this type are used to represent keyboard keys using the current
@@ -2408,14 +2493,6 @@ pub const Keymod = enum(u16) {
     pub const gui: u16 = lgui | rgui;
 };
 
-pub const KeyboardId = u32;
-
-// TODO
-// - SDL_HasKeyboard
-// - SDL_GetKeyboards
-// - SDL_GetKeyboardNameForID
-// - SDL_GetKeyboardFocus
-
 pub fn getKeyboardState() []const bool {
     var numkeys: i32 = 0;
     if (SDL_GetKeyboardState(&numkeys)) |ptr| {
@@ -2557,79 +2634,6 @@ extern fn SDL_HideCursor() bool;
 
 pub const cursorVisible = SDL_CursorVisible;
 extern fn SDL_CursorVisible() bool;
-
-//--------------------------------------------------------------------------------------------------
-//
-// Touch input support (SDL_touch.h)
-//
-//--------------------------------------------------------------------------------------------------
-pub const TouchId = u64;
-
-pub const FingerId = u64;
-
-pub const TouchDeviceType = enum(c_int) {
-    invalid = -1,
-    direct,
-    indirect_absolute,
-    indirect_relative,
-};
-
-pub const Finger = extern struct {
-    id: FingerId,
-    x: f32,
-    y: f32,
-    pressure: f32,
-};
-
-pub const TOUCH_MOUSEID: c_int = -1;
-
-pub const MOUSE_TOUCHID: c_int = -1;
-
-// TODO
-// - SDL_GetTouchDevices
-// - SDL_GetTouchDeviceName
-// - SDL_GetTouchDeviceType
-// - SDL_GetTouchFingers
-
-//--------------------------------------------------------------------------------------------------
-//
-// Touch input support (SDL_pen.h)
-//
-//--------------------------------------------------------------------------------------------------
-pub const PenId = u32;
-
-pub const PEN_MOUSEID: c_int = -2;
-
-pub const PEN_TOUCHID: c_int = -2;
-
-pub const PenInputFlags = packed struct(u32) {
-    down: u1,
-    button_1: u1,
-    button_2: u1,
-    button_3: u1,
-    button_4: u1,
-    button_5: u1,
-    _: u25,
-    eraser_tip: u1,
-};
-
-pub const PEN_INPUT_DOWN: u32 = @as(u32, 1) << 0;
-pub const PEN_INPUT_BUTTON_1: u32 = @as(u32, 1) << 1;
-pub const PEN_INPUT_BUTTON_2: u32 = @as(u32, 1) << 2;
-pub const PEN_INPUT_BUTTON_3: u32 = @as(u32, 1) << 3;
-pub const PEN_INPUT_BUTTON_4: u32 = @as(u32, 1) << 4;
-pub const PEN_INPUT_BUTTON_5: u32 = @as(u32, 1) << 5;
-pub const PEN_INPUT_ERASER_TIP: u32 = @as(u32, 1) << 30;
-
-pub const PenAxis = enum(c_int) {
-    pressure,
-    xtilt,
-    ytilt,
-    distance,
-    rotation,
-    slider,
-    tangential_pressure,
-};
 
 //--------------------------------------------------------------------------------------------------
 //
@@ -2824,7 +2828,6 @@ extern fn SDL_OpenGamepad(joystick_index: Joystick.Id) ?*Gamepad;
 // - SDL_GetGamepadVendor
 // - SDL_GetGamepadProduct
 // - SDL_GetGamepadProductVersion
-// - SDL_GetGamepadProductVersion
 // - SDL_GetGamepadSerial
 // - SDL_GetGamepadSteamHandle
 // - SDL_GetGamepadConnectionState
@@ -2874,6 +2877,79 @@ extern fn SDL_CloseGamepad(joystick: *Gamepad) void;
 
 //--------------------------------------------------------------------------------------------------
 //
+// Touch Support (SDL_touch.h)
+//
+//--------------------------------------------------------------------------------------------------
+pub const TouchId = u64;
+
+pub const FingerId = u64;
+
+pub const TouchDeviceType = enum(c_int) {
+    invalid = -1,
+    direct,
+    indirect_absolute,
+    indirect_relative,
+};
+
+pub const Finger = extern struct {
+    id: FingerId,
+    x: f32,
+    y: f32,
+    pressure: f32,
+};
+
+pub const TOUCH_MOUSEID: c_int = -1;
+
+pub const MOUSE_TOUCHID: c_int = -1;
+
+// TODO
+// - SDL_GetTouchDevices
+// - SDL_GetTouchDeviceName
+// - SDL_GetTouchDeviceType
+// - SDL_GetTouchFingers
+
+//--------------------------------------------------------------------------------------------------
+//
+// Pen Support (SDL_pen.h)
+//
+//--------------------------------------------------------------------------------------------------
+pub const PenId = u32;
+
+pub const PEN_MOUSEID: c_int = -2;
+
+pub const PEN_TOUCHID: c_int = -2;
+
+pub const PenInputFlags = packed struct(u32) {
+    down: u1,
+    button_1: u1,
+    button_2: u1,
+    button_3: u1,
+    button_4: u1,
+    button_5: u1,
+    _: u25,
+    eraser_tip: u1,
+};
+
+pub const PEN_INPUT_DOWN: u32 = @as(u32, 1) << 0;
+pub const PEN_INPUT_BUTTON_1: u32 = @as(u32, 1) << 1;
+pub const PEN_INPUT_BUTTON_2: u32 = @as(u32, 1) << 2;
+pub const PEN_INPUT_BUTTON_3: u32 = @as(u32, 1) << 3;
+pub const PEN_INPUT_BUTTON_4: u32 = @as(u32, 1) << 4;
+pub const PEN_INPUT_BUTTON_5: u32 = @as(u32, 1) << 5;
+pub const PEN_INPUT_ERASER_TIP: u32 = @as(u32, 1) << 30;
+
+pub const PenAxis = enum(c_int) {
+    pressure,
+    xtilt,
+    ytilt,
+    distance,
+    rotation,
+    slider,
+    tangential_pressure,
+};
+
+//--------------------------------------------------------------------------------------------------
+//
 // Sensors (SDL_sensor.h)
 //
 //--------------------------------------------------------------------------------------------------
@@ -2885,14 +2961,17 @@ pub const SensorId = u32;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Camera (SDL_camera.h)
+// HIDAPI (SDL_hidapi.h)
 //
 //--------------------------------------------------------------------------------------------------
-pub const CameraId = u32;
+// TODO
 
-pub const Camera = opaque {};
-
-// TODO: Camera API
+//--------------------------------------------------------------------------------------------------
+//
+// Force Feedback Support (SDL_haptic.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
@@ -3335,25 +3414,32 @@ extern fn SDL_OpenAudioDeviceStream(AudioDeviceId, *const AudioSpec, ?AudioStrea
 
 //--------------------------------------------------------------------------------------------------
 //
-// Thread Management
+// 3D Rendering and GPU Compute (SDL_gpu.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// Thread Management (SDL_thread.h)
 //
 //--------------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------------
 //
-// Thread Synchronization Primitives
+// Thread Synchronization Primitives (SDL_mutex.h)
 //
 //--------------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------------
 //
-// Atomic Operations
+// Atomic Operations (SDL_atomic.h)
 //
 //--------------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------------
 //
-// Timer Support
+// Timer Support (SDL_timer.h)
 //
 //--------------------------------------------------------------------------------------------------
 /// Get the number of nanoseconds since SDL library initialization.
@@ -3374,7 +3460,14 @@ extern fn SDL_GetTicks() u64;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Filesystem Paths
+// Date and Time (SDL_time.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// Filesystem Access (SDL_filesystem.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub fn getBasePath() ?[]const u8 {
@@ -3389,43 +3482,66 @@ extern fn SDL_GetPrefPath(org: [*c]const u8, app: [*c]const u8) [*c]const u8;
 
 //--------------------------------------------------------------------------------------------------
 //
-// File I/O Abstraction
+// Storage Abstraction (SDL_storage.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// I/O Streams (SDL_iostream.h)
 //
 //--------------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------------
 //
-// Shared Object Loading and Function Lookup
+// Async I/O (SDL_asyncio.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// Shared Object/DLL Management (SDL_loadso.h)
 //
 //--------------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------------
 //
-// Platform Detection
+// Platform Detection (SDL_platform.h)
 //
 //--------------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------------
 //
-// CPU Feature Detection
+// CPU Feature Detection (SDL_cpuinfo.h)
 //
 //--------------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------------
 //
-// Byte Order and Byte Swapping
+// Compiler Intrinsics Detection (SDL_intrin.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Bit Manipulation
+// Byte Order and Byte Swapping (SDL_endian.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Power Management Status
+// Bit Manipulation (SDL_bits.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// Power Management Status (SDL_power.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const PowerState = enum(c_int) {
@@ -3441,7 +3557,14 @@ pub const PowerState = enum(c_int) {
 
 //--------------------------------------------------------------------------------------------------
 //
-// Message boxes
+// Process Control (SDL_process.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// Message Boxes (SDL_messagebox.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const MessageBoxFlags = packed struct(u32) {
@@ -3472,13 +3595,35 @@ extern fn SDL_ShowSimpleMessageBox(
 
 //--------------------------------------------------------------------------------------------------
 //
-// Platform-specific Functionality
+// File Dialogs (SDL_dialog.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// "Standard Library" Functionality
+// System Tray (SDL_tray.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// Locale Info (SDL_locale.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// Platform-specific Functionality (SDL_system.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// Standard Library Functionality (SDL_stdinc.h)
 //
 //--------------------------------------------------------------------------------------------------
 
@@ -3502,3 +3647,17 @@ extern fn SDL_free(*anyopaque) void;
 // TODO
 // - Declare SDL_malloc_func, SDL_calloc_func, SDL_realloc_func and SDL_free_func
 // - Zig Allocator interface
+
+//--------------------------------------------------------------------------------------------------
+//
+// GUIDs (SDL_guid.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
+
+//--------------------------------------------------------------------------------------------------
+//
+// Miscellaneous (SDL_misc.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
