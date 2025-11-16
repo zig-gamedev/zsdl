@@ -129,7 +129,7 @@ extern fn SDL_SetAppMetadata(appname: [*c]const u8, appversion: [*c]const u8, ap
 // Object Properties (SDL_properties.h)
 //
 //--------------------------------------------------------------------------------------------------
-pub const PropertiesID = u32;
+pub const PropertiesID = enum(u32) { _ };
 
 pub const PropertyType = enum(c_int) {
     invalid = 0,
@@ -577,9 +577,9 @@ extern fn SDL_GetVersion(version: *Version) void;
 // Display and Window Management (SDL_video.h)
 //
 //--------------------------------------------------------------------------------------------------
-pub const DisplayId = u32;
+pub const DisplayId = enum(u32) { invalid = 0, _ };
 
-pub const WindowId = u32;
+pub const WindowId = enum(u32) { invalid = 0, _ };
 
 pub const DisplayMode = extern struct {
     displayId: DisplayId,
@@ -1638,7 +1638,7 @@ pub const vk = struct {
 // Camera (SDL_camera.h)
 //
 //--------------------------------------------------------------------------------------------------
-pub const CameraId = u32;
+pub const CameraId = enum(u32) { invalid = 0, _ };
 
 pub const Camera = opaque {};
 
@@ -2277,7 +2277,7 @@ pub const EventFilter = fn (userdata: ?*anyopaque, event: *Event) bool;
 //
 //--------------------------------------------------------------------------------------------------
 
-pub const KeyboardId = u32;
+pub const KeyboardId = enum(u32) { invalid = 0, _ };
 
 // TODO
 // - SDL_HasKeyboard
@@ -2941,7 +2941,7 @@ pub const Capitalization = enum(c_int) {
 // Mouse Support (SDL_mouse.h)
 //
 //--------------------------------------------------------------------------------------------------
-pub const MouseId = u32;
+pub const MouseId = enum(u32) { invalid = 0, _ };
 
 pub const Cursor = opaque {};
 
@@ -3032,7 +3032,7 @@ extern fn SDL_CursorVisible() bool;
 //--------------------------------------------------------------------------------------------------
 
 pub const Joystick = struct {
-    pub const Id = u32;
+    pub const Id = enum(u32) { invalid = 0, _ };
 
     pub const Type = enum(c_int) {
         unknown,
@@ -3303,7 +3303,7 @@ pub const MOUSE_TOUCHID: c_int = -1;
 // Pen Support (SDL_pen.h)
 //
 //--------------------------------------------------------------------------------------------------
-pub const PenId = u32;
+pub const PenId = enum(u32) { invalid = 0, _ };
 
 pub const PEN_MOUSEID: c_int = -2;
 
@@ -3345,7 +3345,7 @@ pub const PenAxis = enum(c_int) {
 //--------------------------------------------------------------------------------------------------
 pub const Sensor = opaque {};
 
-pub const SensorId = u32;
+pub const SensorId = enum(u32) { invalid = 0, _ };
 
 // TODO: Sensor API
 
@@ -3421,7 +3421,7 @@ pub inline fn AUDIO_ISUNSIGNED(format: AudioFormat) bool {
     return !AUDIO_ISSIGNED(format);
 }
 
-pub const AudioDeviceId = u32;
+pub const AudioDeviceId = enum(u32) { invalid = 0, _ };
 
 pub const AUDIO_DEVICE_DEFAULT_PLAYBACK = 0xFFFFFFFF;
 pub const AUDIO_DEVICE_DEFAULT_RECORDING = 0xFFFFFFFE;
@@ -3528,7 +3528,7 @@ extern fn SDL_GetAudioDeviceChannelMap(AudioDeviceId, out_count: *c_int) [*c]c_i
 
 /// Open a specific audio device.
 pub fn openAudioDevice(device: AudioDeviceId, spec: ?*const AudioSpec) Error!void {
-    if (SDL_OpenAudioDevice(device, spec) == 0) {
+    if (SDL_OpenAudioDevice(device, spec) == .invalid) {
         return makeError();
     }
 }
