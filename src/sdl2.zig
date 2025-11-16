@@ -158,7 +158,11 @@ pub fn log(comptime fmt: []const u8, args: anytype) void {
     var buf: [max_log_message]u8 = undefined;
     const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
-            SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+            SDL_LogError(
+                @intFromEnum(LogCategory.assert),
+                "(log message exceeded %d characters)",
+                .{max_log_message},
+            );
             return;
         },
     };
@@ -172,7 +176,11 @@ pub fn logVerbose(category: LogCategory, comptime fmt: []const u8, args: anytype
     var buf: [max_log_message]u8 = undefined;
     const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
-            SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+            SDL_LogError(
+                @intFromEnum(LogCategory.assert),
+                "(log message exceeded %d characters)",
+                .{max_log_message},
+            );
             return;
         },
     };
@@ -186,7 +194,11 @@ pub fn logDebug(category: LogCategory, comptime fmt: []const u8, args: anytype) 
     var buf: [max_log_message]u8 = undefined;
     const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
-            SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+            SDL_LogError(
+                @intFromEnum(LogCategory.assert),
+                "(log message exceeded %d characters)",
+                .{max_log_message},
+            );
             return;
         },
     };
@@ -200,7 +212,11 @@ pub fn logInfo(category: LogCategory, comptime fmt: []const u8, args: anytype) v
     var buf: [max_log_message]u8 = undefined;
     const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
-            SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+            SDL_LogError(
+                @intFromEnum(LogCategory.assert),
+                "(log message exceeded %d characters)",
+                .{max_log_message},
+            );
             return;
         },
     };
@@ -214,7 +230,11 @@ pub fn logWarn(category: LogCategory, comptime fmt: []const u8, args: anytype) v
     var buf: [max_log_message]u8 = undefined;
     const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
-            SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+            SDL_LogError(
+                @intFromEnum(LogCategory.assert),
+                "(log message exceeded %d characters)",
+                .{max_log_message},
+            );
             return;
         },
     };
@@ -228,7 +248,11 @@ pub fn logError(category: LogCategory, comptime fmt: []const u8, args: anytype) 
     var buf: [max_log_message]u8 = undefined;
     const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
-            SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+            SDL_LogError(
+                @intFromEnum(LogCategory.assert),
+                "(log message exceeded %d characters)",
+                .{max_log_message},
+            );
             return;
         },
     };
@@ -242,7 +266,11 @@ pub fn logCritical(category: LogCategory, comptime fmt: []const u8, args: anytyp
     var buf: [max_log_message]u8 = undefined;
     const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
-            SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+            SDL_LogError(
+                @intFromEnum(LogCategory.assert),
+                "(log message exceeded %d characters)",
+                .{max_log_message},
+            );
             return;
         },
     };
@@ -256,7 +284,11 @@ pub fn logMessage(category: LogCategory, priority: LogPriority, comptime fmt: []
     var buf: [max_log_message]u8 = undefined;
     const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
-            SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+            SDL_LogError(
+                @intFromEnum(LogCategory.assert),
+                "(log message exceeded %d characters)",
+                .{max_log_message},
+            );
             return;
         },
     };
