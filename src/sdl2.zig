@@ -6,7 +6,7 @@ pub const Error = error{SdlError};
 
 pub fn makeError() error{SdlError} {
     if (getError()) |str| {
-        std.log.debug("SDL2: {s}", .{str});
+        logError(.@"error", "{s}", .{str});
     }
     return error.SdlError;
 }
@@ -14,7 +14,7 @@ pub fn makeError() error{SdlError} {
 const sdl2 = @This();
 
 test {
-    _ = std.testing.refAllDeclsRecursive(sdl2);
+    _ = std.testing.refAllDeclsRecursive(@This());
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -93,7 +93,180 @@ extern fn SDL_GetError() ?[*:0]const u8;
 // Log Handling (SDL_log.h)
 //
 //--------------------------------------------------------------------------------------------------
-// TODO
+pub const max_log_message = 4096;
+
+/// The predefined log categories
+pub const LogCategory = enum(c_int) {
+    application = 0,
+    @"error",
+    assert,
+    system,
+    audio,
+    video,
+    render,
+    input,
+    @"test",
+    reserved1,
+    reserved2,
+    reserved3,
+    reserved4,
+    reserved5,
+    reserved6,
+    reserved7,
+    reserved8,
+    reserved9,
+    reserved10,
+    custom,
+    _,
+};
+
+/// The predefined log priorities
+pub const LogPriority = enum(c_int) {
+    verbose = 1,
+    debug,
+    info,
+    warn,
+    @"error",
+    critical,
+};
+
+/// Set the priority of all log categories.
+pub fn logSetAllPriority(priority: LogPriority) void {
+    SDL_LogSetAllPriority(priority);
+}
+extern fn SDL_LogSetAllPriority(priority: LogPriority) void;
+
+/// Set the priority of a particular log category.
+pub fn logSetPriority(category: LogCategory, priority: LogPriority) void {
+    SDL_LogSetPriority(@intFromEnum(category), priority);
+}
+extern fn SDL_LogSetPriority(category: c_int, priority: LogPriority) void;
+
+/// Get the priority of a particular log category.
+pub fn logGetPriority(category: LogCategory) LogPriority {
+    return SDL_LogGetPriority(@intFromEnum(category));
+}
+extern fn SDL_LogGetPriority(category: c_int) LogPriority;
+
+/// Reset all priorities to default.
+pub const logResetPriorities = SDL_LogResetPriorities;
+extern fn SDL_LogResetPriorities() void;
+
+/// Log a message with SDL_LOG_CATEGORY_APPLICATION and SDL_LOG_PRIORITY_INFO.
+pub fn log(comptime fmt: []const u8, args: anytype) void {
+    assert(fmt.len > 0 and fmt.len < max_log_message - 1);
+    var buf: [max_log_message]u8 = undefined;
+    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch {
+        SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+        return;
+    };
+    SDL_Log(message.ptr);
+}
+extern fn SDL_Log(fmt: [*:0]const u8, ...) void;
+
+/// Log a message with SDL_LOG_PRIORITY_VERBOSE.
+pub fn logVerbose(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
+    assert(fmt.len > 0 and fmt.len < max_log_message - 1);
+    var buf: [max_log_message]u8 = undefined;
+    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch {
+        SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+        return;
+    };
+    SDL_LogVerbose(@intFromEnum(category), message.ptr);
+}
+extern fn SDL_LogVerbose(category: c_int, fmt: [*:0]const u8, ...) void;
+
+/// Log a message with SDL_LOG_PRIORITY_DEBUG.
+pub fn logDebug(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
+    assert(fmt.len > 0 and fmt.len < max_log_message - 1);
+    var buf: [max_log_message]u8 = undefined;
+    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch {
+        SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+        return;
+    };
+    SDL_LogDebug(@intFromEnum(category), message.ptr);
+}
+extern fn SDL_LogDebug(category: c_int, fmt: [*:0]const u8, ...) void;
+
+/// Log a message with SDL_LOG_PRIORITY_INFO.
+pub fn logInfo(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
+    assert(fmt.len > 0 and fmt.len < max_log_message - 1);
+    var buf: [max_log_message]u8 = undefined;
+    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch {
+        SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+        return;
+    };
+    SDL_LogInfo(@intFromEnum(category), message.ptr);
+}
+extern fn SDL_LogInfo(category: c_int, fmt: [*:0]const u8, ...) void;
+
+/// Log a message with SDL_LOG_PRIORITY_WARN.
+pub fn logWarn(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
+    assert(fmt.len > 0 and fmt.len < max_log_message - 1);
+    var buf: [max_log_message]u8 = undefined;
+    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch {
+        SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+        return;
+    };
+    SDL_LogWarn(@intFromEnum(category), message.ptr);
+}
+extern fn SDL_LogWarn(category: c_int, fmt: [*:0]const u8, ...) void;
+
+/// Log a message with SDL_LOG_PRIORITY_ERROR.
+pub fn logError(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
+    assert(fmt.len > 0 and fmt.len < max_log_message - 1);
+    var buf: [max_log_message]u8 = undefined;
+    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch {
+        SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+        return;
+    };
+    SDL_LogError(@intFromEnum(category), message.ptr);
+}
+extern fn SDL_LogError(category: c_int, fmt: [*:0]const u8, ...) void;
+
+/// Log a message with SDL_LOG_PRIORITY_CRITICAL.
+pub fn logCritical(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
+    assert(fmt.len > 0 and fmt.len < max_log_message - 1);
+    var buf: [max_log_message]u8 = undefined;
+    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch {
+        SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+        return;
+    };
+    SDL_LogCritical(@intFromEnum(category), message.ptr);
+}
+extern fn SDL_LogCritical(category: c_int, fmt: [*:0]const u8, ...) void;
+
+/// Log a message with the specified category and priority.
+pub fn logMessage(category: LogCategory, priority: LogPriority, comptime fmt: []const u8, args: anytype) void {
+    assert(fmt.len > 0 and fmt.len < max_log_message - 1);
+    var buf: [max_log_message]u8 = undefined;
+    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch {
+        SDL_LogError(@intFromEnum(LogCategory.assert), "Log message too long!");
+        return;
+    };
+    SDL_LogMessage(@intFromEnum(category), priority, message.ptr);
+}
+extern fn SDL_LogMessage(category: c_int, priority: LogPriority, fmt: [*:0]const u8, ...) void;
+
+/// The prototype for the log output callback function.
+pub const LogOutputFunction = *const fn (
+    userdata: ?*anyopaque,
+    category: c_int,
+    priority: LogPriority,
+    message: [*c]const u8,
+) callconv(.c) void;
+
+/// Get the current log output function.
+pub fn logGetOutputFunction(callback: *LogOutputFunction, userdata: *?*anyopaque) void {
+    SDL_LogGetOutputFunction(callback, userdata);
+}
+extern fn SDL_LogGetOutputFunction(callback: *LogOutputFunction, userdata: *?*anyopaque) void;
+
+/// Replace the default log output function with one of your own.
+pub fn logSetOutputFunction(callback: LogOutputFunction, userdata: ?*anyopaque) void {
+    SDL_LogSetOutputFunction(callback, userdata);
+}
+extern fn SDL_LogSetOutputFunction(callback: LogOutputFunction, userdata: ?*anyopaque) void;
 
 //--------------------------------------------------------------------------------------------------
 //
