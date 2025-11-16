@@ -223,10 +223,14 @@ pub fn getPointerProperty(props: PropertiesID, name: [:0]const u8, default_value
 }
 extern fn SDL_GetPointerProperty(props: PropertiesID, name: [*c]const u8, default_value: ?*anyopaque) ?*anyopaque;
 
-pub fn getStringProperty(props: PropertiesID, name: [:0]const u8, default_value: ?[*:0]const u8) ?[*:0]const u8 {
-    return @ptrCast(SDL_GetStringProperty(props, @ptrCast(name.ptr), default_value));
+pub fn getStringProperty(props: PropertiesID, name: [:0]const u8, default_value: ?[:0]const u8) ?[*:0]const u8 {
+    return @ptrCast(SDL_GetStringProperty(
+        props,
+        @ptrCast(name.ptr),
+        if (default_value) |default_str| @ptrCast(default_str.ptr) else null,
+    ));
 }
-extern fn SDL_GetStringProperty(props: PropertiesID, name: [*c]const u8, default_value: ?[*:0]const u8) [*c]const u8;
+extern fn SDL_GetStringProperty(props: PropertiesID, name: [*c]const u8, default_value: [*c]const u8) [*c]const u8;
 
 pub fn getNumberProperty(props: PropertiesID, name: [:0]const u8, default_value: i64) i64 {
     return SDL_GetNumberProperty(props, @ptrCast(name.ptr), default_value);
@@ -348,7 +352,7 @@ extern fn SDL_ResetLogPriorities() void;
 pub fn setLogPriorityPrefix(priority: LogPriority, prefix: ?[:0]const u8) Error!void {
     if (!SDL_SetLogPriorityPrefix(
         priority,
-        if (prefix) |p| @as([*c]const u8, @ptrCast(p.ptr)) else null,
+        if (prefix) |p| @ptrCast(p.ptr) else null,
     )) {
         return makeError();
     }
@@ -369,9 +373,9 @@ pub fn log(comptime fmt: []const u8, args: anytype) void {
             return;
         },
     };
-    SDL_Log(message.ptr);
+    SDL_Log(@ptrCast(message.ptr));
 }
-extern fn SDL_Log(fmt: [*:0]const u8, ...) void;
+extern fn SDL_Log(fmt: [*c]const u8, ...) void;
 
 /// Log a message with SDL_LOG_PRIORITY_TRACE.
 pub fn logTrace(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
@@ -387,9 +391,9 @@ pub fn logTrace(category: LogCategory, comptime fmt: []const u8, args: anytype) 
             return;
         },
     };
-    SDL_LogTrace(@intFromEnum(category), message.ptr);
+    SDL_LogTrace(@intFromEnum(category), @ptrCast(message.ptr));
 }
-extern fn SDL_LogTrace(category: c_int, fmt: [*:0]const u8, ...) void;
+extern fn SDL_LogTrace(category: c_int, fmt: [*c]const u8, ...) void;
 
 /// Log a message with SDL_LOG_PRIORITY_VERBOSE.
 pub fn logVerbose(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
@@ -405,9 +409,9 @@ pub fn logVerbose(category: LogCategory, comptime fmt: []const u8, args: anytype
             return;
         },
     };
-    SDL_LogVerbose(@intFromEnum(category), message.ptr);
+    SDL_LogVerbose(@intFromEnum(category), @ptrCast(message.ptr));
 }
-extern fn SDL_LogVerbose(category: c_int, fmt: [*:0]const u8, ...) void;
+extern fn SDL_LogVerbose(category: c_int, fmt: [*c]const u8, ...) void;
 
 /// Log a message with SDL_LOG_PRIORITY_DEBUG.
 pub fn logDebug(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
@@ -423,9 +427,9 @@ pub fn logDebug(category: LogCategory, comptime fmt: []const u8, args: anytype) 
             return;
         },
     };
-    SDL_LogDebug(@intFromEnum(category), message.ptr);
+    SDL_LogDebug(@intFromEnum(category), @ptrCast(message.ptr));
 }
-extern fn SDL_LogDebug(category: c_int, fmt: [*:0]const u8, ...) void;
+extern fn SDL_LogDebug(category: c_int, fmt: [*c]const u8, ...) void;
 
 /// Log a message with SDL_LOG_PRIORITY_INFO.
 pub fn logInfo(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
@@ -441,9 +445,9 @@ pub fn logInfo(category: LogCategory, comptime fmt: []const u8, args: anytype) v
             return;
         },
     };
-    SDL_LogInfo(@intFromEnum(category), message.ptr);
+    SDL_LogInfo(@intFromEnum(category), @ptrCast(message.ptr));
 }
-extern fn SDL_LogInfo(category: c_int, fmt: [*:0]const u8, ...) void;
+extern fn SDL_LogInfo(category: c_int, fmt: [*c]const u8, ...) void;
 
 /// Log a message with SDL_LOG_PRIORITY_WARN.
 pub fn logWarn(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
@@ -459,9 +463,9 @@ pub fn logWarn(category: LogCategory, comptime fmt: []const u8, args: anytype) v
             return;
         },
     };
-    SDL_LogWarn(@intFromEnum(category), message.ptr);
+    SDL_LogWarn(@intFromEnum(category), @ptrCast(message.ptr));
 }
-extern fn SDL_LogWarn(category: c_int, fmt: [*:0]const u8, ...) void;
+extern fn SDL_LogWarn(category: c_int, fmt: [*c]const u8, ...) void;
 
 /// Log a message with SDL_LOG_PRIORITY_ERROR.
 pub fn logError(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
@@ -477,9 +481,9 @@ pub fn logError(category: LogCategory, comptime fmt: []const u8, args: anytype) 
             return;
         },
     };
-    SDL_LogError(@intFromEnum(category), message.ptr);
+    SDL_LogError(@intFromEnum(category), @ptrCast(message.ptr));
 }
-extern fn SDL_LogError(category: c_int, fmt: [*:0]const u8, ...) void;
+extern fn SDL_LogError(category: c_int, fmt: [*c]const u8, ...) void;
 
 /// Log a message with SDL_LOG_PRIORITY_CRITICAL.
 pub fn logCritical(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
@@ -495,9 +499,9 @@ pub fn logCritical(category: LogCategory, comptime fmt: []const u8, args: anytyp
             return;
         },
     };
-    SDL_LogCritical(@intFromEnum(category), message.ptr);
+    SDL_LogCritical(@intFromEnum(category), @ptrCast(message.ptr));
 }
-extern fn SDL_LogCritical(category: c_int, fmt: [*:0]const u8, ...) void;
+extern fn SDL_LogCritical(category: c_int, fmt: [*c]const u8, ...) void;
 
 /// Log a message with the specified category and priority.
 pub fn logMessage(category: LogCategory, priority: LogPriority, comptime fmt: []const u8, args: anytype) void {
@@ -513,9 +517,9 @@ pub fn logMessage(category: LogCategory, priority: LogPriority, comptime fmt: []
             return;
         },
     };
-    SDL_LogMessage(@intFromEnum(category), priority, message.ptr);
+    SDL_LogMessage(@intFromEnum(category), priority, @ptrCast(message.ptr));
 }
-extern fn SDL_LogMessage(category: c_int, priority: LogPriority, fmt: [*:0]const u8, ...) void;
+extern fn SDL_LogMessage(category: c_int, priority: LogPriority, fmt: [*c]const u8, ...) void;
 
 /// The prototype for the log output callback function.
 ///
@@ -526,7 +530,7 @@ pub const LogOutputFunction = *const fn (
     userdata: ?*anyopaque,
     category: c_int,
     priority: LogPriority,
-    message: [*:0]const u8,
+    message: [*c]const u8,
 ) callconv(.c) void;
 
 /// Get the default log output function.
@@ -645,12 +649,12 @@ pub fn posCenteredDisplay(x: i32) i32 {
 const pos_undefined_mask: i32 = 0x1fff_0000;
 const pos_centered_mask: i32 = 0x2fff_0000;
 
-pub fn createWindow(title: ?[*:0]const u8, w: c_int, h: c_int, flags: Window.Flags) Error!*Window {
+pub fn createWindow(title: [:0]const u8, w: c_int, h: c_int, flags: Window.Flags) Error!*Window {
     assert(w > 0);
     assert(h > 0);
-    return SDL_CreateWindow(title, w, h, flags) orelse return makeError();
+    return SDL_CreateWindow(@ptrCast(title.ptr), w, h, flags) orelse return makeError();
 }
-extern fn SDL_CreateWindow(title: ?[*:0]const u8, w: c_int, h: c_int, flags: Window.Flags) ?*Window;
+extern fn SDL_CreateWindow(title: [*c]const u8, w: c_int, h: c_int, flags: Window.Flags) ?*Window;
 
 pub const destroyWindow = SDL_DestroyWindow;
 extern fn SDL_DestroyWindow(window: *Window) void;
@@ -772,8 +776,8 @@ pub const gl = struct {
     }
     extern fn SDL_GL_SwapWindow(window: *Window) bool;
 
-    pub fn getProcAddress(proc: [*:0]const u8) callconv(.c) FunctionPointer {
-        return SDL_GL_GetProcAddress(proc);
+    pub fn getProcAddress(proc: [:0]const u8) FunctionPointer {
+        return SDL_GL_GetProcAddress(@ptrCast(proc.ptr));
     }
     extern fn SDL_GL_GetProcAddress(proc: [*c]const u8) callconv(.c) FunctionPointer;
 
@@ -888,12 +892,17 @@ extern fn SDL_GetNumRenderDrivers() c_int;
 /// The names of drivers are all simple, low-ASCII identifiers, like "opengl",
 /// "direct3d12" or "metal". These never have Unicode characters, and are not
 /// meant to be proper names.
-pub const getRenderDriver = SDL_GetRenderDriver;
-extern fn SDL_GetRenderDriver(index: c_int) ?[*:0]const u8;
+pub fn getRenderDriver(index: c_int) ?[:0]const u8 {
+    if (SDL_GetRenderDriver(index)) |ptr| {
+        return std.mem.span(ptr);
+    }
+    return null;
+}
+extern fn SDL_GetRenderDriver(index: c_int) [*c]const u8;
 
 /// Create a window and default renderer.
 pub fn createWindowAndRenderer(
-    window_title: ?[*:0]const u8,
+    window_title: [:0]const u8,
     width: c_int,
     height: c_int,
     window_flags: Window.Flags,
@@ -903,7 +912,7 @@ pub fn createWindowAndRenderer(
     assert(width > 0);
     assert(height > 0);
     if (!SDL_CreateWindowAndRenderer(
-        window_title,
+        @ptrCast(window_title.ptr),
         width,
         height,
         window_flags,
@@ -914,7 +923,7 @@ pub fn createWindowAndRenderer(
     }
 }
 extern fn SDL_CreateWindowAndRenderer(
-    title: ?[*:0]const u8,
+    title: [*c]const u8,
     width: c_int,
     height: c_int,
     window_flags: Window.Flags,
@@ -1220,10 +1229,10 @@ extern fn SDL_RenderReadPixels(
     pitch: c_int,
 ) bool;
 
-pub fn renderDebugText(renderer: *Renderer, x: f32, y: f32, str: [*:0]const u8) Error!void {
-    if (!SDL_RenderDebugText(renderer, x, y, str)) return makeError();
+pub fn renderDebugText(renderer: *Renderer, x: f32, y: f32, str: [:0]const u8) Error!void {
+    if (!SDL_RenderDebugText(renderer, x, y, @ptrCast(str.ptr))) return makeError();
 }
-extern fn SDL_RenderDebugText(renderer: *Renderer, x: f32, y: f32, str: [*:0]const u8) bool;
+extern fn SDL_RenderDebugText(renderer: *Renderer, x: f32, y: f32, str: [*c]const u8) bool;
 
 //--------------------------------------------------------------------------------------------------
 //
@@ -1595,8 +1604,8 @@ pub const vk = struct {
     pub const FunctionPointer = ?*const anyopaque;
     pub const Instance = enum(usize) { null_handle = 0, _ };
 
-    pub fn loadLibrary(path: ?[*:0]const u8) Error!void {
-        if (!SDL_Vulkan_LoadLibrary(@ptrCast(path))) return makeError();
+    pub fn loadLibrary(path: [:0]const u8) Error!void {
+        if (!SDL_Vulkan_LoadLibrary(@ptrCast(path.ptr))) return makeError();
     }
     extern fn SDL_Vulkan_LoadLibrary(path: [*c]const u8) bool;
 
@@ -1852,7 +1861,7 @@ pub const TextEditingEvent = extern struct {
     reserved: u32,
     timestamp: u64,
     window_id: WindowId,
-    text: ?[*:0]const u8,
+    text: [*c]const u8,
     start: i32,
     length: i32,
 };
@@ -1862,7 +1871,7 @@ pub const TextEditingCandidatesEvent = extern struct {
     reserved: u32,
     timestamp: u64,
     window_id: WindowId,
-    candidates: *const [*:0]const u8,
+    candidates: *const [*c]const u8,
     num_candidates: i32,
     selected_candidate: i32,
     horizontal: bool,
@@ -1877,7 +1886,7 @@ pub const TextInputEvent = extern struct {
     reserved: u32,
     timestamp: u64,
     window_id: WindowId,
-    text: ?[*:0]const u8,
+    text: [*c]const u8,
 };
 
 pub const MouseDeviceEvent = extern struct {
@@ -2149,11 +2158,18 @@ pub const DropEvent = extern struct {
     window_id: WindowId,
     x: f32,
     y: f32,
-    source: ?[*:0]const u8,
-    data: ?[*:0]const u8,
+    source: [*c]const u8,
+    data: [*c]const u8,
 };
 
-pub const ClipboardEvent = extern struct { type: EventType, reserved: u32, timestamp: u64, owner: bool, num_mime_types: i32, mime_types: ?*[*:0]const u8 };
+pub const ClipboardEvent = extern struct {
+    type: EventType,
+    reserved: u32,
+    timestamp: u64,
+    owner: bool,
+    num_mime_types: i32,
+    mime_types: [*c][*c]const u8,
+};
 
 pub const SensorEvent = extern struct {
     type: EventType,
@@ -3450,12 +3466,24 @@ pub const getNumAudioDrivers = SDL_GetNumAudioDrivers;
 extern fn SDL_GetNumAudioDrivers() c_int;
 
 /// Use this function to get the name of a built in audio driver.
-pub const getAudioDriver = SDL_GetAudioDriver;
-extern fn SDL_GetAudioDriver(index: c_int) [*:0]const u8;
+pub fn getAudioDriver(index: c_int) ?[:0]const u8 {
+    if (SDL_GetAudioDriver(index)) |name| {
+        return std.mem.span(name);
+    } else {
+        return null;
+    }
+}
+extern fn SDL_GetAudioDriver(index: c_int) [*c]const u8;
 
 /// Get the name of the current audio driver.
-pub const getCurrentAudioDriver = SDL_GetCurrentAudioDriver;
-extern fn SDL_GetCurrentAudioDriver() [*:0]const u8;
+pub fn getCurrentAudioDriver() ?[:0]const u8 {
+    if (SDL_GetCurrentAudioDriver()) |name| {
+        return std.mem.span(name);
+    } else {
+        return null;
+    }
+}
+extern fn SDL_GetCurrentAudioDriver() [*c]const u8;
 
 /// Get a list of currently-connected audio playback devices.
 ///
