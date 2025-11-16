@@ -2,17 +2,24 @@ const builtin = @import("builtin");
 const std = @import("std");
 const assert = std.debug.assert;
 
+pub const Error = error{SdlError};
+
+pub fn makeError() error{SdlError} {
+    if (getError()) |str| {
+        std.log.debug("SDL2: {s}", .{str});
+    }
+    return error.SdlError;
+}
+
 const sdl2 = @This();
 
 test {
     _ = std.testing.refAllDeclsRecursive(sdl2);
 }
 
-const empty_string = "";
-
 //--------------------------------------------------------------------------------------------------
 //
-// Initialzation and Shutdown
+// Initialization and Shutdown (SDL.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const InitFlags = packed struct(c_int) {
@@ -49,13 +56,12 @@ pub fn init(flags: InitFlags) Error!void {
 }
 extern fn SDL_Init(flags: InitFlags) Bool;
 
-/// `pub fn quit() void`
 pub const quit = SDL_Quit;
 extern fn SDL_Quit() void;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Configuration Variables
+// Configuration Variables (SDL_hints.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const hint_video_external_context = "SDL_VIDEO_EXTERNAL_CONTEXT";
@@ -69,10 +75,9 @@ extern fn SDL_SetHint(name: [*:0]const u8, value: [*:0]const u8) Bool;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Error Handling
+// Error Handling (SDL_error.h)
 //
 //--------------------------------------------------------------------------------------------------
-pub const Error = error{SdlError};
 
 /// Get SDL error string
 pub fn getError() ?[:0]const u8 {
@@ -83,28 +88,23 @@ pub fn getError() ?[:0]const u8 {
 }
 extern fn SDL_GetError() ?[*:0]const u8;
 
-pub fn makeError() error{SdlError} {
-    if (getError()) |str| {
-        std.log.debug("SDL2: {s}", .{str});
-    }
-    return error.SdlError;
-}
+//--------------------------------------------------------------------------------------------------
+//
+// Log Handling (SDL_log.h)
+//
+//--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Log Handling
+// Assertions (SDL_assert.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Assertions
-//
-//--------------------------------------------------------------------------------------------------
-
-//--------------------------------------------------------------------------------------------------
-//
-// Querying SDL Version
+// Querying SDL Version (SDL_version.h)
 //
 //--------------------------------------------------------------------------------------------------
 /// Information about the version of SDL in use.
@@ -125,7 +125,7 @@ extern fn SDL_GetVersion(version: *Version) void;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Display and Window management
+// Display and Window Management (SDL_video.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const DisplayID = u32;
@@ -398,7 +398,7 @@ pub const gl = struct {
 
 //--------------------------------------------------------------------------------------------------
 //
-// 2D Accelerated Rendering
+// 2D Accelerated Rendering (SDL_render.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const TextureAccess = enum(c_int) {
@@ -623,7 +623,7 @@ pub const Renderer = opaque {
 /// Create a 2D rendering context for a window.
 pub fn createRenderer(window: *Window, maybe_index: ?u32, flags: Renderer.Flags) Error!*Renderer {
     if (maybe_index) |index| {
-        std.debug.assert(index < std.math.maxInt(c_int));
+        assert(index < std.math.maxInt(c_int));
         return SDL_CreateRenderer(window, @intCast(index), flags) orelse makeError();
     } else {
         return SDL_CreateRenderer(window, -1, flags) orelse makeError();
@@ -1007,7 +1007,7 @@ extern fn SDL_CreateWindowAndRenderer(
 
 //--------------------------------------------------------------------------------------------------
 //
-// Pixel Formats and Conversion Routines
+// Pixel Formats and Conversion Routines (SDL_pixels.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const PixelType = enum(c_int) {
@@ -1125,7 +1125,7 @@ pub const Color = extern struct {
 
 //--------------------------------------------------------------------------------------------------
 //
-// Rectangle Functions
+// Rectangle Functions (SDL_rect.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const Rect = extern struct {
@@ -1190,7 +1190,7 @@ const FPoint = extern struct { x: f32, y: f32 };
 
 //--------------------------------------------------------------------------------------------------
 //
-// Surface Creation and Simple Drawing
+// Surface Creation and Simple Drawing (SDL_surface.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const Surface = extern struct {
@@ -1272,7 +1272,7 @@ extern fn SDL_UpperBlit(
 
 //--------------------------------------------------------------------------------------------------
 //
-// Platform-specific Window Management
+// Platform-specific Window Management (SDL_syswm.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const SysWMType = enum(c_int) {
@@ -1361,25 +1361,28 @@ extern fn SDL_GetWindowWMInfo(window: *Window, info: *SysWMInfo) Bool;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Clipboard Handling
+// Clipboard Handling (SDL_clipboard.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Vulkan Support
+// Vulkan Support (SDL_vulkan.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Metal Support
+// Metal Support (SDL_metal.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Event Handling
+// Event Handling (SDL_events.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const EventType = enum(u32) {
@@ -1667,8 +1670,7 @@ pub fn pollEvent(event: ?*Event) bool {
 }
 extern fn SDL_PollEvent(event: ?*Event) c_int;
 
-/// Returns true if event was added
-///         false if event was filtered out
+/// Returns true if event was added, false if event was filtered out
 pub fn pushEvent(event: *Event) Error!bool {
     const status = SDL_PushEvent(event);
     if (status < 0) return makeError();
@@ -1678,7 +1680,7 @@ extern fn SDL_PushEvent(event: *Event) c_int;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Keyboard Support
+// Keyboard Support (SDL_keyboard.h, SDL_keycode.h, SDL_scancode.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const Scancode = enum(u32) {
@@ -2194,14 +2196,14 @@ pub fn getKeyboardState() []const u8 {
     if (SDL_GetKeyboardState(&numkeys)) |ptr| {
         return ptr[0..@as(usize, @intCast(numkeys))];
     } else {
-        return empty_string[0..];
+        return &.{};
     }
 }
 extern fn SDL_GetKeyboardState(numkeys: ?*c_int) ?[*]const u8;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Mouse Support
+// Mouse Support (SDL_mouse.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const MouseID = u32;
@@ -2225,7 +2227,18 @@ extern fn SDL_ShowCursor(toggle: ShowCursorToggleOption) c_int;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Joystick Support
+// Touch (SDL_touch.h)
+//
+//--------------------------------------------------------------------------------------------------
+
+pub const TouchId = i64;
+pub const FingerId = i64;
+
+// TODO: Add touch functions
+
+//--------------------------------------------------------------------------------------------------
+//
+// Joystick Support (SDL_joystick.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const JoystickID = i32;
@@ -2233,9 +2246,11 @@ pub const JoystickID = i32;
 pub const JOYSTICK_AXIS_MAX = 32767;
 pub const JOYSTICK_AXIS_MIN = -32768;
 
+// TODO: Add joystick functions
+
 //--------------------------------------------------------------------------------------------------
 //
-// Game Controller Support
+// Game Controller Support (SDL_gamecontroller.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const GameController = opaque {
@@ -2306,28 +2321,21 @@ extern fn SDL_GameControllerGetButton(controller: *GameController, button: c_int
 
 //--------------------------------------------------------------------------------------------------
 //
-// Touch
+// Sensors (SDL_sensor.h)
 //
 //--------------------------------------------------------------------------------------------------
-
-pub const TouchId = i64;
-pub const FingerId = i64;
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Sensors
+// Force Feedback Support (SDL_haptic.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Force Feedback Support
-//
-//--------------------------------------------------------------------------------------------------
-
-//--------------------------------------------------------------------------------------------------
-//
-// Audio Device Management, Playing and Recording
+// Audio Device Management, Playing and Recording (SDL_audio.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const AUDIO_MASK_BITSIZE = @as(c_int, 0xFF);
@@ -2455,25 +2463,28 @@ extern fn SDL_ClearQueuedAudio(AudioDeviceId) void;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Thread Management
+// Thread Management (SDL_thread.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Thread Synchronization Primitives
+// Thread Synchronization Primitives (SDL_mutex.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Atomic Operations
+// Atomic Operations (SDL_atomic.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Timer Support
+// Timer Support (SDL_timer.h)
 //
 //--------------------------------------------------------------------------------------------------
 /// `pub fn getPerformanceCounter() u64`
@@ -2493,7 +2504,7 @@ extern fn SDL_GetTicks() u32;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Filesystem Paths
+// Filesystem Paths (SDL_filesystem.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub fn getBasePath() ?[]const u8 {
@@ -2508,7 +2519,7 @@ extern fn SDL_GetPrefPath(org: [*c]const u8, app: [*c]const u8) [*c]const u8;
 
 //--------------------------------------------------------------------------------------------------
 //
-// File I/O Abstraction
+// File I/O Abstraction (SDL_rwops.h)
 //
 //--------------------------------------------------------------------------------------------------
 
@@ -2547,43 +2558,49 @@ extern fn SDL_RWsize(context: *anyopaque) i64;
 
 //--------------------------------------------------------------------------------------------------
 //
-// Shared Object Loading and Function Lookup
+// Shared Object Loading and Function Lookup (SDL_loadso.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Platform Detection
+// Platform Detection (SDL_platform.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// CPU Feature Detection
+// CPU Feature Detection (SDL_cpuinfo.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Byte Order and Byte Swapping
+// Byte Order and Byte Swapping (SDL_endian.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Bit Manipulation
+// Bit Manipulation (SDL_bits.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Power Management Status
+// Power Management Status (SDL_power.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Message boxes
+// Message boxes (SDL_messagebox.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const MessageBoxFlags = packed struct(u32) {
@@ -2612,13 +2629,14 @@ extern fn SDL_ShowSimpleMessageBox(
 
 //--------------------------------------------------------------------------------------------------
 //
-// Platform-specific Functionality
+// Platform-specific Functionality (SDL_system.h)
 //
 //--------------------------------------------------------------------------------------------------
+// TODO
 
 //--------------------------------------------------------------------------------------------------
 //
-// Standard Library Functionality
+// Standard Library Functionality (SDL_stdinc.h)
 //
 //--------------------------------------------------------------------------------------------------
 pub const Bool = c_int;
