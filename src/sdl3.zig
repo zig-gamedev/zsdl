@@ -368,7 +368,7 @@ pub fn log(comptime fmt: []const u8, args: anytype) void {
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
                 "(log message exceeded %d characters)",
-                .{max_log_message},
+                @as(u32, max_log_message),
             );
             return;
         },
@@ -386,7 +386,7 @@ pub fn logTrace(category: LogCategory, comptime fmt: []const u8, args: anytype) 
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
                 "(log message exceeded %d characters)",
-                .{max_log_message},
+                @as(u32, max_log_message),
             );
             return;
         },
@@ -404,7 +404,7 @@ pub fn logVerbose(category: LogCategory, comptime fmt: []const u8, args: anytype
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
                 "(log message exceeded %d characters)",
-                .{max_log_message},
+                @as(u32, max_log_message),
             );
             return;
         },
@@ -422,7 +422,7 @@ pub fn logDebug(category: LogCategory, comptime fmt: []const u8, args: anytype) 
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
                 "(log message exceeded %d characters)",
-                .{max_log_message},
+                @as(u32, max_log_message),
             );
             return;
         },
@@ -440,7 +440,7 @@ pub fn logInfo(category: LogCategory, comptime fmt: []const u8, args: anytype) v
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
                 "(log message exceeded %d characters)",
-                .{max_log_message},
+                @as(u32, max_log_message),
             );
             return;
         },
@@ -458,7 +458,7 @@ pub fn logWarn(category: LogCategory, comptime fmt: []const u8, args: anytype) v
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
                 "(log message exceeded %d characters)",
-                .{max_log_message},
+                @as(u32, max_log_message),
             );
             return;
         },
@@ -476,7 +476,7 @@ pub fn logError(category: LogCategory, comptime fmt: []const u8, args: anytype) 
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
                 "(log message exceeded %d characters)",
-                .{max_log_message},
+                @as(u32, max_log_message),
             );
             return;
         },
@@ -494,7 +494,7 @@ pub fn logCritical(category: LogCategory, comptime fmt: []const u8, args: anytyp
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
                 "(log message exceeded %d characters)",
-                .{max_log_message},
+                @as(u32, max_log_message),
             );
             return;
         },
@@ -512,7 +512,7 @@ pub fn logMessage(category: LogCategory, priority: LogPriority, comptime fmt: []
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
                 "(log message exceeded %d characters)",
-                .{max_log_message},
+                @as(u32, max_log_message),
             );
             return;
         },
