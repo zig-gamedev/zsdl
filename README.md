@@ -54,9 +54,9 @@ pub fn linkSdlLibs(compile_step: *std.Build.Step.Compile) void {
 ### Using prebuilt libraries
 NOTE: If you want to use our prebuilt libraries also add the following run the following commands from your projects root directory to add the entres to your build.zig.zon and download the packages.
 ```sh
-zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-x86_64-windows-gnu.git#master
-zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-x86_64-linux-gnu.git#master
-zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-macos.git#master
+zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-x86_64-windows-gnu.git#main
+zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-x86_64-linux-gnu.git#main
+zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-macos.git#main
 ```
 
 And add the following to your `build.zig`:
@@ -68,10 +68,10 @@ fn build(b: *std.Build) !void {
 
     // Optionally use prebuilt libs instead of relying on system installed SDL...
     @import("zsdl").prebuilt_sdl2.addLibraryPathsTo(exe);
-    if (@import("zsdl").prebuilt_sdl2.install(b, target.result, .bin), .{
+    if (@import("zsdl").prebuilt_sdl2.install(b, target.result, .bin, .{
         .ttf = true,
         .image = true,
-    }) |install_sdl2_step| {
+    })) |install_sdl2_step| {
         b.getInstallStep().dependOn(install_sdl2_step);
     }
 
