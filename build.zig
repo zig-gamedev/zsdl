@@ -81,21 +81,21 @@ pub fn build(b: *std.Build) void {
 fn link_SDL2_libs_testing(compile_step: *std.Build.Step.Compile) void {
     switch (compile_step.rootModuleTarget().os.tag) {
         .windows => {
-            compile_step.linkSystemLibrary("SDL2");
-            compile_step.linkSystemLibrary("SDL2main");
-            compile_step.linkSystemLibrary("SDL2_ttf");
-            compile_step.linkSystemLibrary("SDL2_image");
+            compile_step.root_module.linkSystemLibrary("SDL2", .{});
+            compile_step.root_module.linkSystemLibrary("SDL2main", .{});
+            compile_step.root_module.linkSystemLibrary("SDL2_ttf", .{});
+            compile_step.root_module.linkSystemLibrary("SDL2_image", .{});
         },
         .linux => {
-            compile_step.linkSystemLibrary("SDL2");
-            compile_step.linkSystemLibrary("SDL2_ttf");
-            compile_step.linkSystemLibrary("SDL2_image");
+            compile_step.root_module.linkSystemLibrary("SDL2", .{});
+            compile_step.root_module.linkSystemLibrary("SDL2_ttf", .{});
+            compile_step.root_module.linkSystemLibrary("SDL2_image", .{});
             compile_step.root_module.addRPathSpecial("$ORIGIN");
         },
         .macos => {
-            compile_step.linkFramework("SDL2");
-            compile_step.linkFramework("SDL2_ttf");
-            compile_step.linkFramework("SDL2_image");
+            compile_step.root_module.linkFramework("SDL2", .{});
+            compile_step.root_module.linkFramework("SDL2_ttf", .{});
+            compile_step.root_module.linkFramework("SDL2_image", .{});
             compile_step.root_module.addRPathSpecial("@executable_path");
         },
         else => {},
@@ -105,14 +105,14 @@ fn link_SDL2_libs_testing(compile_step: *std.Build.Step.Compile) void {
 fn link_SDL3_libs_testing(compile_step: *std.Build.Step.Compile) void {
     switch (compile_step.rootModuleTarget().os.tag) {
         .windows => {
-            compile_step.linkSystemLibrary("SDL3");
+            compile_step.root_module.linkSystemLibrary("SDL3", .{});
         },
         .linux => {
-            compile_step.linkSystemLibrary("SDL3");
+            compile_step.root_module.linkSystemLibrary("SDL3", .{});
             compile_step.root_module.addRPathSpecial("$ORIGIN");
         },
         .macos => {
-            compile_step.linkFramework("SDL3");
+            compile_step.root_module.linkFramework("SDL3", .{});
             compile_step.root_module.addRPathSpecial("@executable_path");
         },
         else => {},
@@ -155,20 +155,20 @@ pub const prebuilt_sdl2 = struct {
             .windows => {
                 if (target.cpu.arch.isX86()) {
                     if (b.lazyDependency("sdl2_prebuilt_x86_64_windows_gnu", .{})) |sdl2_prebuilt| {
-                        compile_step.addLibraryPath(sdl2_prebuilt.path("lib"));
+                        compile_step.root_module.addLibraryPath(sdl2_prebuilt.path("lib"));
                     }
                 }
             },
             .linux => {
                 if (target.cpu.arch.isX86()) {
                     if (b.lazyDependency("sdl2_prebuilt_x86_64_linux_gnu", .{})) |sdl2_prebuilt| {
-                        compile_step.addLibraryPath(sdl2_prebuilt.path("lib"));
+                        compile_step.root_module.addLibraryPath(sdl2_prebuilt.path("lib"));
                     }
                 }
             },
             .macos => {
                 if (b.lazyDependency("sdl2_prebuilt_macos", .{})) |sdl2_prebuilt| {
-                    compile_step.addFrameworkPath(sdl2_prebuilt.path("Frameworks"));
+                    compile_step.root_module.addFrameworkPath(sdl2_prebuilt.path("Frameworks"));
                 }
             },
             else => {},
@@ -275,20 +275,20 @@ pub const prebuilt_sdl3 = struct {
             .windows => {
                 if (target.cpu.arch.isX86()) {
                     if (b.lazyDependency("sdl3_prebuilt_x86_64_windows_gnu", .{})) |sdl3_prebuilt| {
-                        compile_step.addLibraryPath(sdl3_prebuilt.path("bin"));
+                        compile_step.root_module.addLibraryPath(sdl3_prebuilt.path("bin"));
                     }
                 }
             },
             .linux => {
                 if (target.cpu.arch.isX86()) {
                     if (b.lazyDependency("sdl3_prebuilt_x86_64_linux_gnu", .{})) |sdl3_prebuilt| {
-                        compile_step.addLibraryPath(sdl3_prebuilt.path("lib"));
+                        compile_step.root_module.addLibraryPath(sdl3_prebuilt.path("lib"));
                     }
                 }
             },
             .macos => {
                 if (b.lazyDependency("sdl3_prebuilt_macos", .{})) |sdl3_prebuilt| {
-                    compile_step.addFrameworkPath(sdl3_prebuilt.path("Frameworks"));
+                    compile_step.root_module.addFrameworkPath(sdl3_prebuilt.path("Frameworks"));
                 }
             },
             else => {},
