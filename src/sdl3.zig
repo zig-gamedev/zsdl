@@ -140,9 +140,9 @@ pub const PropertyType = enum(c_int) {
     boolean = 5,
 };
 
-pub const CleanupPropertyCallback = *const fn (userdata: ?*anyopaque, value: ?*anyopaque) callconv(.C) void;
+pub const CleanupPropertyCallback = *const fn (userdata: ?*anyopaque, value: ?*anyopaque) callconv(.c) void;
 
-pub const EnumeratePropertiesCallback = *const fn (userdata: ?*anyopaque, props: PropertiesID, name: [*c]const u8) callconv(.C) void;
+pub const EnumeratePropertiesCallback = *const fn (userdata: ?*anyopaque, props: PropertiesID, name: [*c]const u8) callconv(.c) void;
 
 pub const getGlobalProperties = SDL_GetGlobalProperties;
 extern fn SDL_GetGlobalProperties() PropertiesID;
