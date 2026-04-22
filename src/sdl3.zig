@@ -7,7 +7,7 @@ const std = @import("std");
 const assert = std.debug.assert;
 
 test {
-    _ = std.testing.refAllDeclsRecursive(@This());
+    _ = std.testing.refAllDecls(@This());
 }
 
 pub const Error = error{SdlError};

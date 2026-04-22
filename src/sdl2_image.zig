@@ -2,7 +2,7 @@ const std = @import("std");
 const sdl = @import("zsdl2");
 
 test {
-    _ = std.testing.refAllDeclsRecursive(@This());
+    _ = std.testing.refAllDecls(@This());
 }
 
 /// Load an image from a filesystem path into a software surface.

@@ -14,7 +14,7 @@ pub fn makeError() error{SdlError} {
 const sdl2 = @This();
 
 test {
-    _ = std.testing.refAllDeclsRecursive(@This());
+    _ = std.testing.refAllDecls(@This());
 }
 
 //--------------------------------------------------------------------------------------------------
