@@ -3555,10 +3555,12 @@ pub fn getAudioDeviceChannelMap(devid: AudioDeviceId) ?[]c_int {
 extern fn SDL_GetAudioDeviceChannelMap(AudioDeviceId, out_count: *c_int) [*c]c_int;
 
 /// Open a specific audio device.
-pub fn openAudioDevice(device: AudioDeviceId, spec: ?*const AudioSpec) Error!void {
-    if (SDL_OpenAudioDevice(device, spec) == .invalid) {
+pub fn openAudioDevice(device: AudioDeviceId, spec: ?*const AudioSpec) Error!AudioDeviceId {
+    const opened_device_id = SDL_OpenAudioDevice(device, spec);
+    if (opened_device_id == .invalid) {
         return makeError();
     }
+    return opened_device_id;
 }
 extern fn SDL_OpenAudioDevice(AudioDeviceId, ?*const AudioSpec) AudioDeviceId;
 
@@ -3657,7 +3659,6 @@ extern fn SDL_CloseAudioDevice(AudioDeviceId) void;
 
 // TODO
 // - SDL_BindAudioStreams
-// - SDL_BindAudioStream
 // - SDL_UnbindAudioStreams
 // - SDL_UnbindAudioStream
 
@@ -3670,7 +3671,6 @@ pub const getAudioStreamDevice = SDL_GetAudioStreamDevice;
 extern fn SDL_GetAudioStreamDevice(*AudioStream) AudioDeviceId;
 
 // TODO
-// - SDL_CreateAudioStream
 // - SDL_GetAudioStreamProperties
 // - SDL_GetAudioStreamFormat
 // - SDL_SetAudioStreamFormat
@@ -3698,6 +3698,18 @@ pub fn putAudioStreamData(comptime SampleType: type, stream: *AudioStream, data:
     }
 }
 extern fn SDL_PutAudioStreamData(*AudioStream, data: *const anyopaque, len: c_int) bool;
+
+pub const createAudioStream = SDL_CreateAudioStream;
+extern fn SDL_CreateAudioStream(src_spec: *const AudioSpec, dst_spec: ?*const AudioSpec) ?*AudioStream;
+
+/// Bind an audio stream to an audio device.
+///
+/// This binds a single audio stream to the specified audio device. The stream
+/// can then be used to play or record audio.
+pub fn bindAudioStream(devid: AudioDeviceId, stream: *AudioStream) Error!void {
+    if (!SDL_BindAudioStream(devid, stream)) return makeError();
+}
+extern fn SDL_BindAudioStream(devid: AudioDeviceId, stream: *AudioStream) bool;
 
 // TODO
 // - SDL_GetAudioStreamData
@@ -3814,17 +3826,21 @@ pub const AudioStreamCallback = *const fn (
 ///
 /// Destroying the returned stream with SDL_DestroyAudioStream will also close
 /// the audio device associated with this stream.
-pub fn openAudioDeviceStream(device: AudioDeviceId, spec: *const AudioSpec, callback: ?AudioStreamCallback, userdata: *anyopaque) Error!*AudioStream {
+pub fn openAudioDeviceStream(device: AudioDeviceId, spec: *const AudioSpec, callback: ?AudioStreamCallback, userdata: ?*anyopaque) Error!*AudioStream {
     const maybe_stream = SDL_OpenAudioDeviceStream(device, spec, callback, userdata);
     return if (maybe_stream) |stream| stream else makeError();
 }
-extern fn SDL_OpenAudioDeviceStream(AudioDeviceId, *const AudioSpec, ?AudioStreamCallback, *anyopaque) ?*AudioStream;
+extern fn SDL_OpenAudioDeviceStream(AudioDeviceId, *const AudioSpec, ?AudioStreamCallback, ?*anyopaque) ?*AudioStream;
+
+pub fn loadWAV(path: [:0]const u8, spec: *const AudioSpec, audio_buf: *const []u8, audio_len: *u32) bool {
+    return SDL_LoadWAV(path, spec, audio_buf, audio_len);
+}
+extern fn SDL_LoadWAV([*c]const u8, *const AudioSpec, *const []u8, *u32) bool;
 
 // TODO
 // - SDL_AudioPostmixCallback
 // - SDL_SetAudioPostmixCallback
 // - SDL_LoadWAV_IO
-// - SDL_LoadWAV
 // - SDL_MixAudio
 // - SDL_ConvertAudioSamples
 // - SDL_GetAudioFormatName
