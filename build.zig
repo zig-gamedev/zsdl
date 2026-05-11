@@ -70,10 +70,12 @@ pub fn build(b: *std.Build) void {
 
         if (prebuilt_sdl2.install(b, target.result, .bin, .{ .ttf = true, .image = true })) |install_sdl2_step| {
             b.getInstallStep().dependOn(install_sdl2_step);
+            test_step.dependOn(install_sdl2_step);
         }
 
         if (prebuilt_sdl3.install(b, target.result, .bin, .{})) |install_sdl3_step| {
             b.getInstallStep().dependOn(install_sdl3_step);
+            test_step.dependOn(install_sdl3_step);
         }
     }
 }
@@ -220,11 +222,21 @@ pub const prebuilt_sdl2 = struct {
                             install_dir,
                             "libSDL2.so",
                         ).step);
+                        install_step.dependOn(&b.addInstallFileWithDir(
+                            sdl2_prebuilt.path("lib/libSDL2.so"),
+                            install_dir,
+                            "libSDL2-2.0.so.0",
+                        ).step);
                         if (aux_libs.ttf) {
                             install_step.dependOn(&b.addInstallFileWithDir(
                                 sdl2_prebuilt.path("lib/libSDL2_ttf.so"),
                                 install_dir,
                                 "libSDL2_ttf.so",
+                            ).step);
+                            install_step.dependOn(&b.addInstallFileWithDir(
+                                sdl2_prebuilt.path("lib/libSDL2_ttf.so"),
+                                install_dir,
+                                "libSDL2_ttf-2.0.so.0",
                             ).step);
                         }
                         if (aux_libs.image) {
@@ -232,6 +244,11 @@ pub const prebuilt_sdl2 = struct {
                                 sdl2_prebuilt.path("lib/libSDL2_image.so"),
                                 install_dir,
                                 "libSDL2_image.so",
+                            ).step);
+                            install_step.dependOn(&b.addInstallFileWithDir(
+                                sdl2_prebuilt.path("lib/libSDL2_image.so"),
+                                install_dir,
+                                "libSDL2_image-2.0.so.0",
                             ).step);
                         }
                     }
@@ -319,11 +336,18 @@ pub const prebuilt_sdl3 = struct {
             .linux => {
                 if (target.cpu.arch.isX86()) {
                     if (b.lazyDependency("sdl3_prebuilt_x86_64_linux_gnu", .{})) |sdl3_prebuilt| {
-                        return &b.addInstallFileWithDir(
+                        var sdl3_install_step = b.step("install-sdl3-linux", "");
+                        sdl3_install_step.dependOn(&b.addInstallFileWithDir(
                             sdl3_prebuilt.path("lib/libSDL3.so"),
                             install_dir,
                             "libSDL3.so",
-                        ).step;
+                        ).step);
+                        sdl3_install_step.dependOn(&b.addInstallFileWithDir(
+                            sdl3_prebuilt.path("lib/libSDL3.so"),
+                            install_dir,
+                            "libSDL3.so.0",
+                        ).step);
+                        return sdl3_install_step;
                     }
                 }
             },
