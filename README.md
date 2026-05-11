@@ -30,21 +30,20 @@ pub fn linkSdlLibs(compile_step: *std.Build.Step.Compile) void {
     // Adjust as needed for the libraries you are using.
     switch (compile_step.rootModuleTarget().os.tag) {
         .windows => {
-            compile_step.linkSystemLibrary("SDL2");
-            compile_step.linkSystemLibrary("SDL2main"); // Only needed for SDL2, not ttf or image
-
-            compile_step.linkSystemLibrary("SDL2_ttf");
-            compile_step.linkSystemLibrary("SDL2_image");
+            compile_step.root_module.linkSystemLibrary("SDL2", .{});
+            compile_step.root_module.linkSystemLibrary("SDL2main", .{}); // Only needed for SDL2, not ttf or image
+            compile_step.root_module.linkSystemLibrary("SDL2_ttf", .{});
+            compile_step.root_module.linkSystemLibrary("SDL2_image", .{});
         },
         .linux => {
-            compile_step.linkSystemLibrary("SDL2");
-            compile_step.linkSystemLibrary("SDL2_ttf");
-            compile_step.linkSystemLibrary("SDL2_image");
+            compile_step.root_module.linkSystemLibrary("SDL2", .{});
+            compile_step.root_module.linkSystemLibrary("SDL2_ttf", .{});
+            compile_step.root_module.linkSystemLibrary("SDL2_image", .{});
         },
         .macos => {
-            compile_step.linkFramework("SDL2");
-            compile_step.linkFramework("SDL2_ttf");
-            compile_step.linkFramework("SDL2_image");
+            compile_step.root_module.linkFramework("SDL2", .{});
+            compile_step.root_module.linkFramework("SDL2_ttf", .{});
+            compile_step.root_module.linkFramework("SDL2_image", .{});
         },
         else => {},
     }
@@ -52,21 +51,15 @@ pub fn linkSdlLibs(compile_step: *std.Build.Step.Compile) void {
 ```
 
 ### Using prebuilt libraries
-NOTE: If you want to use our prebuilt libraries also add the following run the following commands from your projects root directory to add the entres to your build.zig.zon and download the packages.
-```sh
-zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-x86_64-windows-gnu.git#main
-zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-x86_64-linux-gnu.git#main
-zig fetch --save git+https://github.com/zig-gamedev/sdl2-prebuilt-macos.git#main
-```
 
-And add the following to your `build.zig`:
+To use the prebuilt libraries, add the following to your `build.zig`:
 
 ```zig
-fn build(b: *std.Build) !void {
+pub fn build(b: *std.Build) !void {
 
     // ... other build steps ...
 
-    // Optionally use prebuilt libs instead of relying on system installed SDL...
+    // Use prebuilt libs instead of relying on system-installed SDL.
     @import("zsdl").prebuilt_sdl2.addLibraryPathsTo(exe);
     if (@import("zsdl").prebuilt_sdl2.install(b, target.result, .bin, .{
         .ttf = true,
@@ -87,7 +80,6 @@ fn build(b: *std.Build) !void {
 ```
 
 ### Using zsdl2 in your code
-Now in your code you may import and use `zsdl2`:
 
 ```zig
 const std = @import("std");
@@ -112,4 +104,4 @@ pub fn main() !void {
 ```
 
 ## Getting started (SDL3)
-TODO
+TODO: Document SDL3 bindings usage

@@ -121,6 +121,7 @@ fn link_SDL3_libs_testing(compile_step: *std.Build.Step.Compile) void {
     }
 }
 
+/// Deprecated. Refer to README for linking instructions.
 pub fn link_SDL2(compile_step: *std.Build.Step.Compile) void {
     _ = compile_step;
     @compileError("link_SDL2 no longer supported. Refer to README for linking instructions.");
@@ -130,16 +131,19 @@ pub fn link_SDL2(compile_step: *std.Build.Step.Compile) void {
     // calls from the README into your build.zig file and adjust as necessary.
 }
 
+/// Deprecated. Refer to README for linking instructions.
 pub fn link_SDL2_ttf(compile_step: *std.Build.Step.Compile) void {
     _ = compile_step;
     @compileError("link_SDL2_ttf no longer supported. Refer to README for linking instructions.");
 }
 
+/// Deprecated. Refer to README for linking instructions.
 pub fn link_SDL2_image(compile_step: *std.Build.Step.Compile) void {
     _ = compile_step;
     @compileError("link_SDL2_image no longer supported. Refer to README for linking instructions.");
 }
 
+/// Deprecated. Refer to README for linking instructions.
 pub fn link_SDL3(compile_step: *std.Build.Step.Compile) void {
     _ = compile_step;
     @compileError("link_SDL3 no longer supported. Refer to README for linking instructions.");
@@ -149,6 +153,7 @@ pub fn link_SDL3(compile_step: *std.Build.Step.Compile) void {
     // calls from the README into your build.zig file and adjust as necessary.
 }
 
+/// Deprecated. We're going to build SDL from source instead. Rebuilt repo's will be archived.
 pub const prebuilt_sdl2 = struct {
     pub fn addLibraryPathsTo(compile_step: *std.Build.Step.Compile) void {
         const b = compile_step.step.owner;
@@ -284,6 +289,7 @@ pub const prebuilt_sdl2 = struct {
     }
 };
 
+/// Deprecated. We're going to build SDL from source instead. Rebuilt repo's will be archived.
 pub const prebuilt_sdl3 = struct {
     pub fn addLibraryPathsTo(compile_step: *std.Build.Step.Compile) void {
         const b = compile_step.step.owner;
