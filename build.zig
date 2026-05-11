@@ -31,8 +31,14 @@ pub fn build(b: *std.Build) void {
 
     {
         const test_step = b.step("test", "Run bindings tests");
+        const install_sdl2_step = prebuilt_sdl2.install(b, target.result, .bin, .{ .ttf = true, .image = true });
+        if (install_sdl2_step) |s| b.getInstallStep().dependOn(s);
+
+        const install_sdl3_step = prebuilt_sdl3.install(b, target.result, .bin, .{});
+        if (install_sdl3_step) |s| b.getInstallStep().dependOn(s);
+
         { // Test SDL2 bindings
-            const zsdl2_tests = addTests(test_step, target, optimize, "zsdl2-tests", "src/sdl2.zig");
+            const zsdl2_tests = addTests(test_step, target, optimize, "zsdl2-tests", "src/sdl2.zig", install_sdl2_step);
             link_SDL2_libs_testing(zsdl2_tests);
             prebuilt_sdl2.addLibraryPathsTo(zsdl2_tests);
         }
@@ -45,6 +51,7 @@ pub fn build(b: *std.Build) void {
                 "src/sdl2_ttf.zig",
                 "zsdl2",
                 zsdl2_module,
+                install_sdl2_step,
             );
             link_SDL2_libs_testing(zsdl2_ttf_tests);
             prebuilt_sdl2.addLibraryPathsTo(zsdl2_ttf_tests);
@@ -58,25 +65,17 @@ pub fn build(b: *std.Build) void {
                 "src/sdl2_image.zig",
                 "zsdl2",
                 zsdl2_module,
+                install_sdl2_step,
             );
             link_SDL2_libs_testing(zsdl2_image_tests);
             prebuilt_sdl2.addLibraryPathsTo(zsdl2_image_tests);
         }
         { // Test SDL3 bindings
-            const zsdl3_tests = addTests(test_step, target, optimize, "zsdl3-tests", "src/sdl3.zig");
+            const zsdl3_tests = addTests(test_step, target, optimize, "zsdl3-tests", "src/sdl3.zig", install_sdl3_step);
             link_SDL3_libs_testing(zsdl3_tests);
             prebuilt_sdl3.addLibraryPathsTo(zsdl3_tests);
         }
 
-        if (prebuilt_sdl2.install(b, target.result, .bin, .{ .ttf = true, .image = true })) |install_sdl2_step| {
-            b.getInstallStep().dependOn(install_sdl2_step);
-            test_step.dependOn(install_sdl2_step);
-        }
-
-        if (prebuilt_sdl3.install(b, target.result, .bin, .{})) |install_sdl3_step| {
-            b.getInstallStep().dependOn(install_sdl3_step);
-            test_step.dependOn(install_sdl3_step);
-        }
     }
 }
 
@@ -378,6 +377,7 @@ fn addTests(
     optimize: std.builtin.OptimizeMode,
     name: []const u8,
     root_src_path: []const u8,
+    run_after: ?*std.Build.Step,
 ) *std.Build.Step.Compile {
     const b = test_step.owner;
     const tests = b.addTest(.{
@@ -397,6 +397,7 @@ fn addTests(
         });
     }
 
+    if (run_after) |s| run.step.dependOn(s);
     run.step.dependOn(&install.step);
     test_step.dependOn(&run.step);
     return tests;
@@ -410,8 +411,9 @@ fn addTestsAux(
     root_src_path: []const u8,
     parent_module_name: []const u8,
     parent_module: *std.Build.Module,
+    run_after: ?*std.Build.Step,
 ) *std.Build.Step.Compile {
-    const tests = addTests(test_step, target, optimize, name, root_src_path);
+    const tests = addTests(test_step, target, optimize, name, root_src_path, run_after);
     tests.root_module.addImport(parent_module_name, parent_module);
     return tests;
 }
