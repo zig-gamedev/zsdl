@@ -30,31 +30,19 @@ pub const AppResult = enum(c_int) {
     failure = 2,
 };
 
-pub const appInit = SDL_AppInit;
-extern fn SDL_AppInit(appstate: ?*?*anyopaque, argc: c_int, argv: [*c][*c]const u8) AppResult;
-
-pub const appIterate = SDL_AppIterate;
-extern fn SDL_AppIterate(appstate: ?*anyopaque) AppResult;
-
-pub const appEvent = SDL_AppEvent;
-extern fn SDL_AppEvent(appstate: ?*anyopaque, event: *Event) AppResult;
-
-pub const appQuit = SDL_AppQuit;
-extern fn SDL_AppQuit(appstate: ?*anyopaque, result: AppResult) void;
-
-pub const AppInit_func = fn (?*?*anyopaque, c_int, [*c][*c]const u8) callconv(.c) AppResult;
-pub const AppIterate_func = fn (?*anyopaque) callconv(.c) AppResult;
-pub const AppEvent_func = fn (?*anyopaque, *Event) callconv(.c) AppResult;
-pub const AppQuit_func = fn (?*anyopaque, AppResult) callconv(.c) void;
+pub const AppInitFn = fn (?*?*anyopaque, c_int, [*c][*c]const u8) callconv(.c) AppResult;
+pub const AppIterateFn = fn (?*anyopaque) callconv(.c) AppResult;
+pub const AppEventFn = fn (?*anyopaque, *Event) callconv(.c) AppResult;
+pub const AppQuitFn = fn (?*anyopaque, AppResult) callconv(.c) void;
 
 pub const enterAppMainCallbacks = SDL_EnterAppMainCallbacks;
 extern fn SDL_EnterAppMainCallbacks(
     argc: c_int,
     argv: [*c][*c]u8,
-    appinit: ?*const AppInit_func,
-    appiter: ?*const AppIterate_func,
-    appevent: ?*const AppEvent_func,
-    appquit: ?*const AppQuit_func,
+    appinit: ?*const AppInitFn,
+    appiter: ?*const AppIterateFn,
+    appevent: ?*const AppEventFn,
+    appquit: ?*const AppQuitFn,
 ) c_int;
 
 pub const setMainReady = SDL_SetMainReady;
