@@ -1591,6 +1591,8 @@ extern fn SDL_DestroySurface(surface: *Surface) void;
 pub const vk = struct {
     pub const FunctionPointer = ?*const anyopaque;
     pub const Instance = enum(usize) { null_handle = 0, _ };
+    pub const PhysicalDevice = enum(usize) { null_handle = 0, _ };
+    pub const SurfaceKHR = enum(usize) { null_handle = 0, _ };
 
     pub fn loadLibrary(path: [:0]const u8) Error!void {
         if (!SDL_Vulkan_LoadLibrary(@ptrCast(path.ptr))) return makeError();
@@ -1606,21 +1608,14 @@ pub const vk = struct {
     pub const getInstanceExtensions = SDL_Vulkan_GetInstanceExtensions;
     extern fn SDL_Vulkan_GetInstanceExtensions(count: *u32) [*c]const [*c]const u8;
 
-    pub fn createSurface(
-        window: *Window,
-        instance: Instance,
-        allocator_callbacks: *anyopaque,
-        surface: *anyopaque,
-    ) bool {
-        return SDL_Vulkan_CreateSurface(window, instance, allocator_callbacks, surface);
-    }
+    pub const getPresentationSupport = SDL_Vulkan_GetPresentationSupport;
+    extern fn SDL_Vulkan_GetPresentationSupport(instance: Instance, physical_device: PhysicalDevice, queue_family_index: u32) bool;
 
-    extern fn SDL_Vulkan_CreateSurface(
-        window: *Window,
-        instance: Instance,
-        allocator_callbacks: *anyopaque,
-        surface: *anyopaque,
-    ) bool;
+    pub const createSurface = SDL_Vulkan_CreateSurface;
+    extern fn SDL_Vulkan_CreateSurface(window: *Window, instance: Instance, allocator_callbacks: ?*anyopaque, surface: *anyopaque) bool;
+
+    pub const destroySurface = SDL_Vulkan_DestroySurface;
+    extern fn SDL_Vulkan_DestroySurface(instance: Instance, surface: SurfaceKHR, allocator_callbacks: ?*anyopaque) void;
 };
 
 //--------------------------------------------------------------------------------------------------
