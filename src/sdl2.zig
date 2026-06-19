@@ -156,7 +156,7 @@ extern fn SDL_LogResetPriorities() void;
 pub fn log(comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
@@ -174,7 +174,7 @@ extern fn SDL_Log(fmt: [*:0]const u8, ...) void;
 pub fn logVerbose(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
@@ -192,7 +192,7 @@ extern fn SDL_LogVerbose(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logDebug(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
@@ -210,7 +210,7 @@ extern fn SDL_LogDebug(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logInfo(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
@@ -228,7 +228,7 @@ extern fn SDL_LogInfo(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logWarn(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
@@ -246,7 +246,7 @@ extern fn SDL_LogWarn(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logError(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
@@ -264,7 +264,7 @@ extern fn SDL_LogError(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logCritical(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
@@ -282,7 +282,7 @@ extern fn SDL_LogCritical(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logMessage(category: LogCategory, priority: LogPriority, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
                 @intFromEnum(LogCategory.assert),
