@@ -138,13 +138,13 @@ extern fn SDL_LogSetAllPriority(priority: LogPriority) void;
 
 /// Set the priority of a particular log category.
 pub fn logSetPriority(category: LogCategory, priority: LogPriority) void {
-    SDL_LogSetPriority(@intFromEnum(category), priority);
+    SDL_LogSetPriority(@backingInt(category), priority);
 }
 extern fn SDL_LogSetPriority(category: c_int, priority: LogPriority) void;
 
 /// Get the priority of a particular log category.
 pub fn logGetPriority(category: LogCategory) LogPriority {
-    return SDL_LogGetPriority(@intFromEnum(category));
+    return SDL_LogGetPriority(@backingInt(category));
 }
 extern fn SDL_LogGetPriority(category: c_int) LogPriority;
 
@@ -156,10 +156,10 @@ extern fn SDL_LogResetPriorities() void;
 pub fn log(comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
@@ -174,17 +174,17 @@ extern fn SDL_Log(fmt: [*:0]const u8, ...) void;
 pub fn logVerbose(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogVerbose(@intFromEnum(category), message.ptr);
+    SDL_LogVerbose(@backingInt(category), message.ptr);
 }
 extern fn SDL_LogVerbose(category: c_int, fmt: [*:0]const u8, ...) void;
 
@@ -192,17 +192,17 @@ extern fn SDL_LogVerbose(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logDebug(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogDebug(@intFromEnum(category), message.ptr);
+    SDL_LogDebug(@backingInt(category), message.ptr);
 }
 extern fn SDL_LogDebug(category: c_int, fmt: [*:0]const u8, ...) void;
 
@@ -210,17 +210,17 @@ extern fn SDL_LogDebug(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logInfo(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogInfo(@intFromEnum(category), message.ptr);
+    SDL_LogInfo(@backingInt(category), message.ptr);
 }
 extern fn SDL_LogInfo(category: c_int, fmt: [*:0]const u8, ...) void;
 
@@ -228,17 +228,17 @@ extern fn SDL_LogInfo(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logWarn(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogWarn(@intFromEnum(category), message.ptr);
+    SDL_LogWarn(@backingInt(category), message.ptr);
 }
 extern fn SDL_LogWarn(category: c_int, fmt: [*:0]const u8, ...) void;
 
@@ -246,17 +246,17 @@ extern fn SDL_LogWarn(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logError(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogError(@intFromEnum(category), message.ptr);
+    SDL_LogError(@backingInt(category), message.ptr);
 }
 extern fn SDL_LogError(category: c_int, fmt: [*:0]const u8, ...) void;
 
@@ -264,17 +264,17 @@ extern fn SDL_LogError(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logCritical(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogCritical(@intFromEnum(category), message.ptr);
+    SDL_LogCritical(@backingInt(category), message.ptr);
 }
 extern fn SDL_LogCritical(category: c_int, fmt: [*:0]const u8, ...) void;
 
@@ -282,17 +282,17 @@ extern fn SDL_LogCritical(category: c_int, fmt: [*:0]const u8, ...) void;
 pub fn logMessage(category: LogCategory, priority: LogPriority, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogMessage(@intFromEnum(category), priority, message.ptr);
+    SDL_LogMessage(@backingInt(category), priority, message.ptr);
 }
 extern fn SDL_LogMessage(category: c_int, priority: LogPriority, fmt: [*:0]const u8, ...) void;
 
@@ -1300,7 +1300,7 @@ fn definePixelFormatEnum(
         },
         .none => unreachable,
     }
-    return ((1 << 28) | ((@intFromEnum(_type)) << 24) | ((@intFromEnum(order)) << 20) |
+    return ((1 << 28) | ((@backingInt(_type)) << 24) | ((@backingInt(order)) << 20) |
         ((layout) << 16) | ((bits) << 8) | ((bytes) << 0));
 }
 pub const PixelFormatEnum = enum(u32) {
@@ -1309,32 +1309,32 @@ pub const PixelFormatEnum = enum(u32) {
     index4lsb = definePixelFormatEnum(.index4, BitmapOrder.@"4321", 0, 4, 0),
     index4msb = definePixelFormatEnum(.index4, BitmapOrder.@"1234", 0, 4, 0),
     index8 = definePixelFormatEnum(.index8, BitmapOrder.none, 0, 8, 1),
-    rgb332 = definePixelFormatEnum(.packed8, PackedOrder.xrgb, @intFromEnum(PackedLayout.@"332"), 8, 1),
-    xrgb4444 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @intFromEnum(PackedLayout.@"4444"), 12, 2),
-    xbgr4444 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @intFromEnum(PackedLayout.@"4444"), 12, 2),
-    xrgb1555 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @intFromEnum(PackedLayout.@"1555"), 15, 2),
-    xbgr1555 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @intFromEnum(PackedLayout.@"1555"), 15, 2),
-    argb4444 = definePixelFormatEnum(.packed16, PackedOrder.argb, @intFromEnum(PackedLayout.@"4444"), 16, 2),
-    rgba4444 = definePixelFormatEnum(.packed16, PackedOrder.rgba, @intFromEnum(PackedLayout.@"4444"), 16, 2),
-    abgr4444 = definePixelFormatEnum(.packed16, PackedOrder.abgr, @intFromEnum(PackedLayout.@"4444"), 16, 2),
-    bgra4444 = definePixelFormatEnum(.packed16, PackedOrder.bgra, @intFromEnum(PackedLayout.@"4444"), 16, 2),
-    argb1555 = definePixelFormatEnum(.packed16, PackedOrder.argb, @intFromEnum(PackedLayout.@"1555"), 16, 2),
-    rgba5551 = definePixelFormatEnum(.packed16, PackedOrder.rgba, @intFromEnum(PackedLayout.@"5551"), 16, 2),
-    abgr1555 = definePixelFormatEnum(.packed16, PackedOrder.abgr, @intFromEnum(PackedLayout.@"1555"), 16, 2),
-    bgra5551 = definePixelFormatEnum(.packed16, PackedOrder.bgra, @intFromEnum(PackedLayout.@"5551"), 16, 2),
-    rgb565 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @intFromEnum(PackedLayout.@"565"), 16, 2),
-    bgr565 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @intFromEnum(PackedLayout.@"565"), 16, 2),
+    rgb332 = definePixelFormatEnum(.packed8, PackedOrder.xrgb, @backingInt(PackedLayout.@"332"), 8, 1),
+    xrgb4444 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @backingInt(PackedLayout.@"4444"), 12, 2),
+    xbgr4444 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @backingInt(PackedLayout.@"4444"), 12, 2),
+    xrgb1555 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @backingInt(PackedLayout.@"1555"), 15, 2),
+    xbgr1555 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @backingInt(PackedLayout.@"1555"), 15, 2),
+    argb4444 = definePixelFormatEnum(.packed16, PackedOrder.argb, @backingInt(PackedLayout.@"4444"), 16, 2),
+    rgba4444 = definePixelFormatEnum(.packed16, PackedOrder.rgba, @backingInt(PackedLayout.@"4444"), 16, 2),
+    abgr4444 = definePixelFormatEnum(.packed16, PackedOrder.abgr, @backingInt(PackedLayout.@"4444"), 16, 2),
+    bgra4444 = definePixelFormatEnum(.packed16, PackedOrder.bgra, @backingInt(PackedLayout.@"4444"), 16, 2),
+    argb1555 = definePixelFormatEnum(.packed16, PackedOrder.argb, @backingInt(PackedLayout.@"1555"), 16, 2),
+    rgba5551 = definePixelFormatEnum(.packed16, PackedOrder.rgba, @backingInt(PackedLayout.@"5551"), 16, 2),
+    abgr1555 = definePixelFormatEnum(.packed16, PackedOrder.abgr, @backingInt(PackedLayout.@"1555"), 16, 2),
+    bgra5551 = definePixelFormatEnum(.packed16, PackedOrder.bgra, @backingInt(PackedLayout.@"5551"), 16, 2),
+    rgb565 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @backingInt(PackedLayout.@"565"), 16, 2),
+    bgr565 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @backingInt(PackedLayout.@"565"), 16, 2),
     rgb24 = definePixelFormatEnum(.arrayu8, ArrayOrder.rgb, 0, 24, 3),
     bgr24 = definePixelFormatEnum(.arrayu8, ArrayOrder.bgr, 0, 24, 3),
-    xrgb8888 = definePixelFormatEnum(.packed32, PackedOrder.xrgb, @intFromEnum(PackedLayout.@"8888"), 24, 4),
-    rgbx8888 = definePixelFormatEnum(.packed32, PackedOrder.rgbx, @intFromEnum(PackedLayout.@"8888"), 24, 4),
-    xbgr8888 = definePixelFormatEnum(.packed32, PackedOrder.xbgr, @intFromEnum(PackedLayout.@"8888"), 24, 4),
-    bgrx8888 = definePixelFormatEnum(.packed32, PackedOrder.bgrx, @intFromEnum(PackedLayout.@"8888"), 24, 4),
-    argb8888 = definePixelFormatEnum(.packed32, PackedOrder.argb, @intFromEnum(PackedLayout.@"8888"), 32, 4),
-    rgba8888 = definePixelFormatEnum(.packed32, PackedOrder.rgba, @intFromEnum(PackedLayout.@"8888"), 32, 4),
-    abgr8888 = definePixelFormatEnum(.packed32, PackedOrder.abgr, @intFromEnum(PackedLayout.@"8888"), 32, 4),
-    bgra8888 = definePixelFormatEnum(.packed32, PackedOrder.bgra, @intFromEnum(PackedLayout.@"8888"), 32, 4),
-    argb2101010 = definePixelFormatEnum(.packed32, PackedOrder.argb, @intFromEnum(PackedLayout.@"2101010"), 32, 4),
+    xrgb8888 = definePixelFormatEnum(.packed32, PackedOrder.xrgb, @backingInt(PackedLayout.@"8888"), 24, 4),
+    rgbx8888 = definePixelFormatEnum(.packed32, PackedOrder.rgbx, @backingInt(PackedLayout.@"8888"), 24, 4),
+    xbgr8888 = definePixelFormatEnum(.packed32, PackedOrder.xbgr, @backingInt(PackedLayout.@"8888"), 24, 4),
+    bgrx8888 = definePixelFormatEnum(.packed32, PackedOrder.bgrx, @backingInt(PackedLayout.@"8888"), 24, 4),
+    argb8888 = definePixelFormatEnum(.packed32, PackedOrder.argb, @backingInt(PackedLayout.@"8888"), 32, 4),
+    rgba8888 = definePixelFormatEnum(.packed32, PackedOrder.rgba, @backingInt(PackedLayout.@"8888"), 32, 4),
+    abgr8888 = definePixelFormatEnum(.packed32, PackedOrder.abgr, @backingInt(PackedLayout.@"8888"), 32, 4),
+    bgra8888 = definePixelFormatEnum(.packed32, PackedOrder.bgra, @backingInt(PackedLayout.@"8888"), 32, 4),
+    argb2101010 = definePixelFormatEnum(.packed32, PackedOrder.argb, @backingInt(PackedLayout.@"2101010"), 32, 4),
 };
 
 pub const Color = extern struct {
@@ -2226,180 +2226,180 @@ pub const Keycode = enum(c_int) {
     x = 'x',
     y = 'y',
     z = 'z',
-    capslock = @intFromEnum(Scancode.capslock) | mask,
-    f1 = @intFromEnum(Scancode.f1) | mask,
-    f2 = @intFromEnum(Scancode.f2) | mask,
-    f3 = @intFromEnum(Scancode.f3) | mask,
-    f4 = @intFromEnum(Scancode.f4) | mask,
-    f5 = @intFromEnum(Scancode.f5) | mask,
-    f6 = @intFromEnum(Scancode.f6) | mask,
-    f7 = @intFromEnum(Scancode.f7) | mask,
-    f8 = @intFromEnum(Scancode.f8) | mask,
-    f9 = @intFromEnum(Scancode.f9) | mask,
-    f10 = @intFromEnum(Scancode.f10) | mask,
-    f11 = @intFromEnum(Scancode.f11) | mask,
-    f12 = @intFromEnum(Scancode.f12) | mask,
-    printscreen = @intFromEnum(Scancode.printscreen) | mask,
-    scrolllock = @intFromEnum(Scancode.scrolllock) | mask,
-    pause = @intFromEnum(Scancode.pause) | mask,
-    insert = @intFromEnum(Scancode.insert) | mask,
-    home = @intFromEnum(Scancode.home) | mask,
-    pageup = @intFromEnum(Scancode.pageup) | mask,
+    capslock = @backingInt(Scancode.capslock) | mask,
+    f1 = @backingInt(Scancode.f1) | mask,
+    f2 = @backingInt(Scancode.f2) | mask,
+    f3 = @backingInt(Scancode.f3) | mask,
+    f4 = @backingInt(Scancode.f4) | mask,
+    f5 = @backingInt(Scancode.f5) | mask,
+    f6 = @backingInt(Scancode.f6) | mask,
+    f7 = @backingInt(Scancode.f7) | mask,
+    f8 = @backingInt(Scancode.f8) | mask,
+    f9 = @backingInt(Scancode.f9) | mask,
+    f10 = @backingInt(Scancode.f10) | mask,
+    f11 = @backingInt(Scancode.f11) | mask,
+    f12 = @backingInt(Scancode.f12) | mask,
+    printscreen = @backingInt(Scancode.printscreen) | mask,
+    scrolllock = @backingInt(Scancode.scrolllock) | mask,
+    pause = @backingInt(Scancode.pause) | mask,
+    insert = @backingInt(Scancode.insert) | mask,
+    home = @backingInt(Scancode.home) | mask,
+    pageup = @backingInt(Scancode.pageup) | mask,
     delete = '\x7f',
-    end = @intFromEnum(Scancode.end) | mask,
-    pagedown = @intFromEnum(Scancode.pagedown) | mask,
-    right = @intFromEnum(Scancode.right) | mask,
-    left = @intFromEnum(Scancode.left) | mask,
-    down = @intFromEnum(Scancode.down) | mask,
-    up = @intFromEnum(Scancode.up) | mask,
-    numlockclear = @intFromEnum(Scancode.numlockclear) | mask,
-    kp_divide = @intFromEnum(Scancode.kp_divide) | mask,
-    kp_multiply = @intFromEnum(Scancode.kp_multiply) | mask,
-    kp_minus = @intFromEnum(Scancode.kp_minus) | mask,
-    kp_plus = @intFromEnum(Scancode.kp_plus) | mask,
-    kp_enter = @intFromEnum(Scancode.kp_enter) | mask,
-    kp_1 = @intFromEnum(Scancode.kp_1) | mask,
-    kp_2 = @intFromEnum(Scancode.kp_2) | mask,
-    kp_3 = @intFromEnum(Scancode.kp_3) | mask,
-    kp_4 = @intFromEnum(Scancode.kp_4) | mask,
-    kp_5 = @intFromEnum(Scancode.kp_5) | mask,
-    kp_6 = @intFromEnum(Scancode.kp_6) | mask,
-    kp_7 = @intFromEnum(Scancode.kp_7) | mask,
-    kp_8 = @intFromEnum(Scancode.kp_8) | mask,
-    kp_9 = @intFromEnum(Scancode.kp_9) | mask,
-    kp_0 = @intFromEnum(Scancode.kp_0) | mask,
-    kp_period = @intFromEnum(Scancode.kp_period) | mask,
-    application = @intFromEnum(Scancode.application) | mask,
-    power = @intFromEnum(Scancode.power) | mask,
-    kp_equals = @intFromEnum(Scancode.kp_equals) | mask,
-    f13 = @intFromEnum(Scancode.f13) | mask,
-    f14 = @intFromEnum(Scancode.f14) | mask,
-    f15 = @intFromEnum(Scancode.f15) | mask,
-    f16 = @intFromEnum(Scancode.f16) | mask,
-    f17 = @intFromEnum(Scancode.f17) | mask,
-    f18 = @intFromEnum(Scancode.f18) | mask,
-    f19 = @intFromEnum(Scancode.f19) | mask,
-    f20 = @intFromEnum(Scancode.f20) | mask,
-    f21 = @intFromEnum(Scancode.f21) | mask,
-    f22 = @intFromEnum(Scancode.f22) | mask,
-    f23 = @intFromEnum(Scancode.f23) | mask,
-    f24 = @intFromEnum(Scancode.f24) | mask,
-    execute = @intFromEnum(Scancode.execute) | mask,
-    help = @intFromEnum(Scancode.help) | mask,
-    menu = @intFromEnum(Scancode.menu) | mask,
-    select = @intFromEnum(Scancode.select) | mask,
-    stop = @intFromEnum(Scancode.stop) | mask,
-    again = @intFromEnum(Scancode.again) | mask,
-    undo = @intFromEnum(Scancode.undo) | mask,
-    cut = @intFromEnum(Scancode.cut) | mask,
-    copy = @intFromEnum(Scancode.copy) | mask,
-    paste = @intFromEnum(Scancode.paste) | mask,
-    find = @intFromEnum(Scancode.find) | mask,
-    mute = @intFromEnum(Scancode.mute) | mask,
-    volumeup = @intFromEnum(Scancode.volumeup) | mask,
-    volumedown = @intFromEnum(Scancode.volumedown) | mask,
-    kp_comma = @intFromEnum(Scancode.kp_comma) | mask,
-    kp_equalsas400 = @intFromEnum(Scancode.kp_equalsas400) | mask,
-    alterase = @intFromEnum(Scancode.alterase) | mask,
-    sysreq = @intFromEnum(Scancode.sysreq) | mask,
-    cancel = @intFromEnum(Scancode.cancel) | mask,
-    clear = @intFromEnum(Scancode.clear) | mask,
-    prior = @intFromEnum(Scancode.prior) | mask,
-    return2 = @intFromEnum(Scancode.return2) | mask,
-    separator = @intFromEnum(Scancode.separator) | mask,
-    out = @intFromEnum(Scancode.out) | mask,
-    oper = @intFromEnum(Scancode.oper) | mask,
-    clearagain = @intFromEnum(Scancode.clearagain) | mask,
-    crsel = @intFromEnum(Scancode.crsel) | mask,
-    exsel = @intFromEnum(Scancode.exsel) | mask,
-    kp_00 = @intFromEnum(Scancode.kp_00) | mask,
-    kp_000 = @intFromEnum(Scancode.kp_000) | mask,
-    thousandsseparator = @intFromEnum(Scancode.thousandsseparator) | mask,
-    decimalseparator = @intFromEnum(Scancode.decimalseparator) | mask,
-    currencyunit = @intFromEnum(Scancode.currencyunit) | mask,
-    currencysubunit = @intFromEnum(Scancode.currencysubunit) | mask,
-    kp_leftparen = @intFromEnum(Scancode.kp_leftparen) | mask,
-    kp_rightparen = @intFromEnum(Scancode.kp_rightparen) | mask,
-    kp_leftbrace = @intFromEnum(Scancode.kp_leftbrace) | mask,
-    kp_rightbrace = @intFromEnum(Scancode.kp_rightbrace) | mask,
-    kp_tab = @intFromEnum(Scancode.kp_tab) | mask,
-    kp_backspace = @intFromEnum(Scancode.kp_backspace) | mask,
-    kp_a = @intFromEnum(Scancode.kp_a) | mask,
-    kp_b = @intFromEnum(Scancode.kp_b) | mask,
-    kp_c = @intFromEnum(Scancode.kp_c) | mask,
-    kp_d = @intFromEnum(Scancode.kp_d) | mask,
-    kp_e = @intFromEnum(Scancode.kp_e) | mask,
-    kp_f = @intFromEnum(Scancode.kp_f) | mask,
-    kp_xor = @intFromEnum(Scancode.kp_xor) | mask,
-    kp_power = @intFromEnum(Scancode.kp_power) | mask,
-    kp_percent = @intFromEnum(Scancode.kp_percent) | mask,
-    kp_less = @intFromEnum(Scancode.kp_less) | mask,
-    kp_greater = @intFromEnum(Scancode.kp_greater) | mask,
-    kp_ampersand = @intFromEnum(Scancode.kp_ampersand) | mask,
-    kp_dblampersand = @intFromEnum(Scancode.kp_dblampersand) | mask,
-    kp_verticalbar = @intFromEnum(Scancode.kp_verticalbar) | mask,
-    kp_dblverticalbar = @intFromEnum(Scancode.kp_dblverticalbar) | mask,
-    kp_colon = @intFromEnum(Scancode.kp_colon) | mask,
-    kp_hash = @intFromEnum(Scancode.kp_hash) | mask,
-    kp_space = @intFromEnum(Scancode.kp_space) | mask,
-    kp_at = @intFromEnum(Scancode.kp_at) | mask,
-    kp_exclam = @intFromEnum(Scancode.kp_exclam) | mask,
-    kp_memstore = @intFromEnum(Scancode.kp_memstore) | mask,
-    kp_memrecall = @intFromEnum(Scancode.kp_memrecall) | mask,
-    kp_memclear = @intFromEnum(Scancode.kp_memclear) | mask,
-    kp_memadd = @intFromEnum(Scancode.kp_memadd) | mask,
-    kp_memsubtract = @intFromEnum(Scancode.kp_memsubtract) | mask,
-    kp_memmultiply = @intFromEnum(Scancode.kp_memmultiply) | mask,
-    kp_memdivide = @intFromEnum(Scancode.kp_memdivide) | mask,
-    kp_plusminus = @intFromEnum(Scancode.kp_plusminus) | mask,
-    kp_clear = @intFromEnum(Scancode.kp_clear) | mask,
-    kp_clearentry = @intFromEnum(Scancode.kp_clearentry) | mask,
-    kp_binary = @intFromEnum(Scancode.kp_binary) | mask,
-    kp_octal = @intFromEnum(Scancode.kp_octal) | mask,
-    kp_decimal = @intFromEnum(Scancode.kp_decimal) | mask,
-    kp_hexadecimal = @intFromEnum(Scancode.kp_hexadecimal) | mask,
-    lctrl = @intFromEnum(Scancode.lctrl) | mask,
-    lshift = @intFromEnum(Scancode.lshift) | mask,
-    lalt = @intFromEnum(Scancode.lalt) | mask,
-    lgui = @intFromEnum(Scancode.lgui) | mask,
-    rctrl = @intFromEnum(Scancode.rctrl) | mask,
-    rshift = @intFromEnum(Scancode.rshift) | mask,
-    ralt = @intFromEnum(Scancode.ralt) | mask,
-    rgui = @intFromEnum(Scancode.rgui) | mask,
-    mode = @intFromEnum(Scancode.mode) | mask,
-    audionext = @intFromEnum(Scancode.audionext) | mask,
-    audioprev = @intFromEnum(Scancode.audioprev) | mask,
-    audiostop = @intFromEnum(Scancode.audiostop) | mask,
-    audioplay = @intFromEnum(Scancode.audioplay) | mask,
-    audiomute = @intFromEnum(Scancode.audiomute) | mask,
-    mediaselect = @intFromEnum(Scancode.mediaselect) | mask,
-    www = @intFromEnum(Scancode.www) | mask,
-    mail = @intFromEnum(Scancode.mail) | mask,
-    calculator = @intFromEnum(Scancode.calculator) | mask,
-    computer = @intFromEnum(Scancode.computer) | mask,
-    ac_search = @intFromEnum(Scancode.ac_search) | mask,
-    ac_home = @intFromEnum(Scancode.ac_home) | mask,
-    ac_back = @intFromEnum(Scancode.ac_back) | mask,
-    ac_forward = @intFromEnum(Scancode.ac_forward) | mask,
-    ac_stop = @intFromEnum(Scancode.ac_stop) | mask,
-    ac_refresh = @intFromEnum(Scancode.ac_refresh) | mask,
-    ac_bookmarks = @intFromEnum(Scancode.ac_bookmarks) | mask,
-    brightnessdown = @intFromEnum(Scancode.brightnessdown) | mask,
-    brightnessup = @intFromEnum(Scancode.brightnessup) | mask,
-    displayswitch = @intFromEnum(Scancode.displayswitch) | mask,
-    kbdillumtoggle = @intFromEnum(Scancode.kbdillumtoggle) | mask,
-    kbdillumdown = @intFromEnum(Scancode.kbdillumdown) | mask,
-    kbdillumup = @intFromEnum(Scancode.kbdillumup) | mask,
-    eject = @intFromEnum(Scancode.eject) | mask,
-    sleep = @intFromEnum(Scancode.sleep) | mask,
-    app1 = @intFromEnum(Scancode.app1) | mask,
-    app2 = @intFromEnum(Scancode.app2) | mask,
-    audiorewind = @intFromEnum(Scancode.audiorewind) | mask,
-    audiofastforward = @intFromEnum(Scancode.audiofastforward) | mask,
-    softleft = @intFromEnum(Scancode.softleft) | mask,
-    softright = @intFromEnum(Scancode.softright) | mask,
-    call = @intFromEnum(Scancode.call) | mask,
-    endcall = @intFromEnum(Scancode.endcall) | mask,
+    end = @backingInt(Scancode.end) | mask,
+    pagedown = @backingInt(Scancode.pagedown) | mask,
+    right = @backingInt(Scancode.right) | mask,
+    left = @backingInt(Scancode.left) | mask,
+    down = @backingInt(Scancode.down) | mask,
+    up = @backingInt(Scancode.up) | mask,
+    numlockclear = @backingInt(Scancode.numlockclear) | mask,
+    kp_divide = @backingInt(Scancode.kp_divide) | mask,
+    kp_multiply = @backingInt(Scancode.kp_multiply) | mask,
+    kp_minus = @backingInt(Scancode.kp_minus) | mask,
+    kp_plus = @backingInt(Scancode.kp_plus) | mask,
+    kp_enter = @backingInt(Scancode.kp_enter) | mask,
+    kp_1 = @backingInt(Scancode.kp_1) | mask,
+    kp_2 = @backingInt(Scancode.kp_2) | mask,
+    kp_3 = @backingInt(Scancode.kp_3) | mask,
+    kp_4 = @backingInt(Scancode.kp_4) | mask,
+    kp_5 = @backingInt(Scancode.kp_5) | mask,
+    kp_6 = @backingInt(Scancode.kp_6) | mask,
+    kp_7 = @backingInt(Scancode.kp_7) | mask,
+    kp_8 = @backingInt(Scancode.kp_8) | mask,
+    kp_9 = @backingInt(Scancode.kp_9) | mask,
+    kp_0 = @backingInt(Scancode.kp_0) | mask,
+    kp_period = @backingInt(Scancode.kp_period) | mask,
+    application = @backingInt(Scancode.application) | mask,
+    power = @backingInt(Scancode.power) | mask,
+    kp_equals = @backingInt(Scancode.kp_equals) | mask,
+    f13 = @backingInt(Scancode.f13) | mask,
+    f14 = @backingInt(Scancode.f14) | mask,
+    f15 = @backingInt(Scancode.f15) | mask,
+    f16 = @backingInt(Scancode.f16) | mask,
+    f17 = @backingInt(Scancode.f17) | mask,
+    f18 = @backingInt(Scancode.f18) | mask,
+    f19 = @backingInt(Scancode.f19) | mask,
+    f20 = @backingInt(Scancode.f20) | mask,
+    f21 = @backingInt(Scancode.f21) | mask,
+    f22 = @backingInt(Scancode.f22) | mask,
+    f23 = @backingInt(Scancode.f23) | mask,
+    f24 = @backingInt(Scancode.f24) | mask,
+    execute = @backingInt(Scancode.execute) | mask,
+    help = @backingInt(Scancode.help) | mask,
+    menu = @backingInt(Scancode.menu) | mask,
+    select = @backingInt(Scancode.select) | mask,
+    stop = @backingInt(Scancode.stop) | mask,
+    again = @backingInt(Scancode.again) | mask,
+    undo = @backingInt(Scancode.undo) | mask,
+    cut = @backingInt(Scancode.cut) | mask,
+    copy = @backingInt(Scancode.copy) | mask,
+    paste = @backingInt(Scancode.paste) | mask,
+    find = @backingInt(Scancode.find) | mask,
+    mute = @backingInt(Scancode.mute) | mask,
+    volumeup = @backingInt(Scancode.volumeup) | mask,
+    volumedown = @backingInt(Scancode.volumedown) | mask,
+    kp_comma = @backingInt(Scancode.kp_comma) | mask,
+    kp_equalsas400 = @backingInt(Scancode.kp_equalsas400) | mask,
+    alterase = @backingInt(Scancode.alterase) | mask,
+    sysreq = @backingInt(Scancode.sysreq) | mask,
+    cancel = @backingInt(Scancode.cancel) | mask,
+    clear = @backingInt(Scancode.clear) | mask,
+    prior = @backingInt(Scancode.prior) | mask,
+    return2 = @backingInt(Scancode.return2) | mask,
+    separator = @backingInt(Scancode.separator) | mask,
+    out = @backingInt(Scancode.out) | mask,
+    oper = @backingInt(Scancode.oper) | mask,
+    clearagain = @backingInt(Scancode.clearagain) | mask,
+    crsel = @backingInt(Scancode.crsel) | mask,
+    exsel = @backingInt(Scancode.exsel) | mask,
+    kp_00 = @backingInt(Scancode.kp_00) | mask,
+    kp_000 = @backingInt(Scancode.kp_000) | mask,
+    thousandsseparator = @backingInt(Scancode.thousandsseparator) | mask,
+    decimalseparator = @backingInt(Scancode.decimalseparator) | mask,
+    currencyunit = @backingInt(Scancode.currencyunit) | mask,
+    currencysubunit = @backingInt(Scancode.currencysubunit) | mask,
+    kp_leftparen = @backingInt(Scancode.kp_leftparen) | mask,
+    kp_rightparen = @backingInt(Scancode.kp_rightparen) | mask,
+    kp_leftbrace = @backingInt(Scancode.kp_leftbrace) | mask,
+    kp_rightbrace = @backingInt(Scancode.kp_rightbrace) | mask,
+    kp_tab = @backingInt(Scancode.kp_tab) | mask,
+    kp_backspace = @backingInt(Scancode.kp_backspace) | mask,
+    kp_a = @backingInt(Scancode.kp_a) | mask,
+    kp_b = @backingInt(Scancode.kp_b) | mask,
+    kp_c = @backingInt(Scancode.kp_c) | mask,
+    kp_d = @backingInt(Scancode.kp_d) | mask,
+    kp_e = @backingInt(Scancode.kp_e) | mask,
+    kp_f = @backingInt(Scancode.kp_f) | mask,
+    kp_xor = @backingInt(Scancode.kp_xor) | mask,
+    kp_power = @backingInt(Scancode.kp_power) | mask,
+    kp_percent = @backingInt(Scancode.kp_percent) | mask,
+    kp_less = @backingInt(Scancode.kp_less) | mask,
+    kp_greater = @backingInt(Scancode.kp_greater) | mask,
+    kp_ampersand = @backingInt(Scancode.kp_ampersand) | mask,
+    kp_dblampersand = @backingInt(Scancode.kp_dblampersand) | mask,
+    kp_verticalbar = @backingInt(Scancode.kp_verticalbar) | mask,
+    kp_dblverticalbar = @backingInt(Scancode.kp_dblverticalbar) | mask,
+    kp_colon = @backingInt(Scancode.kp_colon) | mask,
+    kp_hash = @backingInt(Scancode.kp_hash) | mask,
+    kp_space = @backingInt(Scancode.kp_space) | mask,
+    kp_at = @backingInt(Scancode.kp_at) | mask,
+    kp_exclam = @backingInt(Scancode.kp_exclam) | mask,
+    kp_memstore = @backingInt(Scancode.kp_memstore) | mask,
+    kp_memrecall = @backingInt(Scancode.kp_memrecall) | mask,
+    kp_memclear = @backingInt(Scancode.kp_memclear) | mask,
+    kp_memadd = @backingInt(Scancode.kp_memadd) | mask,
+    kp_memsubtract = @backingInt(Scancode.kp_memsubtract) | mask,
+    kp_memmultiply = @backingInt(Scancode.kp_memmultiply) | mask,
+    kp_memdivide = @backingInt(Scancode.kp_memdivide) | mask,
+    kp_plusminus = @backingInt(Scancode.kp_plusminus) | mask,
+    kp_clear = @backingInt(Scancode.kp_clear) | mask,
+    kp_clearentry = @backingInt(Scancode.kp_clearentry) | mask,
+    kp_binary = @backingInt(Scancode.kp_binary) | mask,
+    kp_octal = @backingInt(Scancode.kp_octal) | mask,
+    kp_decimal = @backingInt(Scancode.kp_decimal) | mask,
+    kp_hexadecimal = @backingInt(Scancode.kp_hexadecimal) | mask,
+    lctrl = @backingInt(Scancode.lctrl) | mask,
+    lshift = @backingInt(Scancode.lshift) | mask,
+    lalt = @backingInt(Scancode.lalt) | mask,
+    lgui = @backingInt(Scancode.lgui) | mask,
+    rctrl = @backingInt(Scancode.rctrl) | mask,
+    rshift = @backingInt(Scancode.rshift) | mask,
+    ralt = @backingInt(Scancode.ralt) | mask,
+    rgui = @backingInt(Scancode.rgui) | mask,
+    mode = @backingInt(Scancode.mode) | mask,
+    audionext = @backingInt(Scancode.audionext) | mask,
+    audioprev = @backingInt(Scancode.audioprev) | mask,
+    audiostop = @backingInt(Scancode.audiostop) | mask,
+    audioplay = @backingInt(Scancode.audioplay) | mask,
+    audiomute = @backingInt(Scancode.audiomute) | mask,
+    mediaselect = @backingInt(Scancode.mediaselect) | mask,
+    www = @backingInt(Scancode.www) | mask,
+    mail = @backingInt(Scancode.mail) | mask,
+    calculator = @backingInt(Scancode.calculator) | mask,
+    computer = @backingInt(Scancode.computer) | mask,
+    ac_search = @backingInt(Scancode.ac_search) | mask,
+    ac_home = @backingInt(Scancode.ac_home) | mask,
+    ac_back = @backingInt(Scancode.ac_back) | mask,
+    ac_forward = @backingInt(Scancode.ac_forward) | mask,
+    ac_stop = @backingInt(Scancode.ac_stop) | mask,
+    ac_refresh = @backingInt(Scancode.ac_refresh) | mask,
+    ac_bookmarks = @backingInt(Scancode.ac_bookmarks) | mask,
+    brightnessdown = @backingInt(Scancode.brightnessdown) | mask,
+    brightnessup = @backingInt(Scancode.brightnessup) | mask,
+    displayswitch = @backingInt(Scancode.displayswitch) | mask,
+    kbdillumtoggle = @backingInt(Scancode.kbdillumtoggle) | mask,
+    kbdillumdown = @backingInt(Scancode.kbdillumdown) | mask,
+    kbdillumup = @backingInt(Scancode.kbdillumup) | mask,
+    eject = @backingInt(Scancode.eject) | mask,
+    sleep = @backingInt(Scancode.sleep) | mask,
+    app1 = @backingInt(Scancode.app1) | mask,
+    app2 = @backingInt(Scancode.app2) | mask,
+    audiorewind = @backingInt(Scancode.audiorewind) | mask,
+    audiofastforward = @backingInt(Scancode.audiofastforward) | mask,
+    softleft = @backingInt(Scancode.softleft) | mask,
+    softright = @backingInt(Scancode.softright) | mask,
+    call = @backingInt(Scancode.call) | mask,
+    endcall = @backingInt(Scancode.endcall) | mask,
     _,
 
     const mask = 1 << 30;
@@ -2530,13 +2530,13 @@ extern fn SDL_GameControllerClose(joystick: *GameController) void;
 
 /// Get the current state of an axis control on a game controller.
 pub fn gameControllerGetAxis(controller: *GameController, axis: GameController.Axis) i16 {
-    return SDL_GameControllerGetAxis(controller, @intFromEnum(axis));
+    return SDL_GameControllerGetAxis(controller, @backingInt(axis));
 }
 extern fn SDL_GameControllerGetAxis(*GameController, axis: c_int) i16;
 
 /// Get the current state of a button on a game controller.
 pub fn gameControllerGetButton(controller: *GameController, button: GameController.Button) bool {
-    return (SDL_GameControllerGetButton(controller, @intFromEnum(button)) != 0);
+    return (SDL_GameControllerGetButton(controller, @backingInt(button)) != 0);
 }
 extern fn SDL_GameControllerGetButton(controller: *GameController, button: c_int) u8;
 

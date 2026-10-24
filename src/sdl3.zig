@@ -317,13 +317,13 @@ extern fn SDL_SetLogPriorities(priority: LogPriority) void;
 
 /// Set the priority of a particular log category.
 pub fn setLogPriority(category: LogCategory, priority: LogPriority) void {
-    SDL_SetLogPriority(@intFromEnum(category), priority);
+    SDL_SetLogPriority(@backingInt(category), priority);
 }
 extern fn SDL_SetLogPriority(category: c_int, priority: LogPriority) void;
 
 /// Get the priority of a particular log category.
 pub fn getLogPriority(category: LogCategory) LogPriority {
-    return SDL_GetLogPriority(@intFromEnum(category));
+    return SDL_GetLogPriority(@backingInt(category));
 }
 extern fn SDL_GetLogPriority(category: c_int) LogPriority;
 
@@ -351,10 +351,10 @@ extern fn SDL_SetLogPriorityPrefix(priority: LogPriority, prefix: [*c]const u8) 
 pub fn log(comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
@@ -369,17 +369,17 @@ extern fn SDL_Log(fmt: [*c]const u8, ...) void;
 pub fn logTrace(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogTrace(@intFromEnum(category), @ptrCast(message.ptr));
+    SDL_LogTrace(@backingInt(category), @ptrCast(message.ptr));
 }
 extern fn SDL_LogTrace(category: c_int, fmt: [*c]const u8, ...) void;
 
@@ -387,17 +387,17 @@ extern fn SDL_LogTrace(category: c_int, fmt: [*c]const u8, ...) void;
 pub fn logVerbose(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogVerbose(@intFromEnum(category), @ptrCast(message.ptr));
+    SDL_LogVerbose(@backingInt(category), @ptrCast(message.ptr));
 }
 extern fn SDL_LogVerbose(category: c_int, fmt: [*c]const u8, ...) void;
 
@@ -405,17 +405,17 @@ extern fn SDL_LogVerbose(category: c_int, fmt: [*c]const u8, ...) void;
 pub fn logDebug(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogDebug(@intFromEnum(category), @ptrCast(message.ptr));
+    SDL_LogDebug(@backingInt(category), @ptrCast(message.ptr));
 }
 extern fn SDL_LogDebug(category: c_int, fmt: [*c]const u8, ...) void;
 
@@ -423,17 +423,17 @@ extern fn SDL_LogDebug(category: c_int, fmt: [*c]const u8, ...) void;
 pub fn logInfo(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogInfo(@intFromEnum(category), @ptrCast(message.ptr));
+    SDL_LogInfo(@backingInt(category), @ptrCast(message.ptr));
 }
 extern fn SDL_LogInfo(category: c_int, fmt: [*c]const u8, ...) void;
 
@@ -441,17 +441,17 @@ extern fn SDL_LogInfo(category: c_int, fmt: [*c]const u8, ...) void;
 pub fn logWarn(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogWarn(@intFromEnum(category), @ptrCast(message.ptr));
+    SDL_LogWarn(@backingInt(category), @ptrCast(message.ptr));
 }
 extern fn SDL_LogWarn(category: c_int, fmt: [*c]const u8, ...) void;
 
@@ -459,17 +459,17 @@ extern fn SDL_LogWarn(category: c_int, fmt: [*c]const u8, ...) void;
 pub fn logError(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogError(@intFromEnum(category), @ptrCast(message.ptr));
+    SDL_LogError(@backingInt(category), @ptrCast(message.ptr));
 }
 extern fn SDL_LogError(category: c_int, fmt: [*c]const u8, ...) void;
 
@@ -477,17 +477,17 @@ extern fn SDL_LogError(category: c_int, fmt: [*c]const u8, ...) void;
 pub fn logCritical(category: LogCategory, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogCritical(@intFromEnum(category), @ptrCast(message.ptr));
+    SDL_LogCritical(@backingInt(category), @ptrCast(message.ptr));
 }
 extern fn SDL_LogCritical(category: c_int, fmt: [*c]const u8, ...) void;
 
@@ -495,17 +495,17 @@ extern fn SDL_LogCritical(category: c_int, fmt: [*c]const u8, ...) void;
 pub fn logMessage(category: LogCategory, priority: LogPriority, comptime fmt: []const u8, args: anytype) void {
     assert(fmt.len > 0 and fmt.len < max_log_message - 1);
     var buf: [max_log_message]u8 = undefined;
-    const message = std.fmt.bufPrintZ(&buf, fmt, args) catch |err| switch (err) {
+    const message = std.fmt.bufPrintSentinel(&buf, fmt, args, 0) catch |err| switch (err) {
         std.fmt.BufPrintError.NoSpaceLeft => {
             SDL_LogError(
-                @intFromEnum(LogCategory.assert),
+                @backingInt(LogCategory.assert),
                 "(log message exceeded %d characters)",
                 @as(u32, max_log_message),
             );
             return;
         },
     };
-    SDL_LogMessage(@intFromEnum(category), priority, @ptrCast(message.ptr));
+    SDL_LogMessage(@backingInt(category), priority, @ptrCast(message.ptr));
 }
 extern fn SDL_LogMessage(category: c_int, priority: LogPriority, fmt: [*c]const u8, ...) void;
 
@@ -1312,7 +1312,7 @@ fn definePixelFormatEnum(
         },
         .unknown => unreachable,
     }
-    return ((1 << 28) | ((@intFromEnum(_type)) << 24) | ((@intFromEnum(order)) << 20) |
+    return ((1 << 28) | ((@backingInt(_type)) << 24) | ((@backingInt(order)) << 20) |
         ((layout) << 16) | ((bits) << 8) | ((bytes) << 0));
 }
 
@@ -1353,32 +1353,32 @@ pub const PixelFormatEnum = enum(u32) {
     index4lsb = definePixelFormatEnum(.index4, BitmapOrder.@"4321", 0, 4, 0),
     index4msb = definePixelFormatEnum(.index4, BitmapOrder.@"1234", 0, 4, 0),
     index8 = definePixelFormatEnum(.index8, BitmapOrder.none, 0, 8, 1),
-    rgb332 = definePixelFormatEnum(.packed8, PackedOrder.xrgb, @intFromEnum(PackedLayout.@"332"), 8, 1),
-    xrgb4444 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @intFromEnum(PackedLayout.@"4444"), 12, 2),
-    xbgr4444 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @intFromEnum(PackedLayout.@"4444"), 12, 2),
-    xrgb1555 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @intFromEnum(PackedLayout.@"1555"), 15, 2),
-    xbgr1555 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @intFromEnum(PackedLayout.@"1555"), 15, 2),
-    argb4444 = definePixelFormatEnum(.packed16, PackedOrder.argb, @intFromEnum(PackedLayout.@"4444"), 16, 2),
-    rgba4444 = definePixelFormatEnum(.packed16, PackedOrder.rgba, @intFromEnum(PackedLayout.@"4444"), 16, 2),
-    abgr4444 = definePixelFormatEnum(.packed16, PackedOrder.abgr, @intFromEnum(PackedLayout.@"4444"), 16, 2),
-    bgra4444 = definePixelFormatEnum(.packed16, PackedOrder.bgra, @intFromEnum(PackedLayout.@"4444"), 16, 2),
-    argb1555 = definePixelFormatEnum(.packed16, PackedOrder.argb, @intFromEnum(PackedLayout.@"1555"), 16, 2),
-    rgba5551 = definePixelFormatEnum(.packed16, PackedOrder.rgba, @intFromEnum(PackedLayout.@"5551"), 16, 2),
-    abgr1555 = definePixelFormatEnum(.packed16, PackedOrder.abgr, @intFromEnum(PackedLayout.@"1555"), 16, 2),
-    bgra5551 = definePixelFormatEnum(.packed16, PackedOrder.bgra, @intFromEnum(PackedLayout.@"5551"), 16, 2),
-    rgb565 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @intFromEnum(PackedLayout.@"565"), 16, 2),
-    bgr565 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @intFromEnum(PackedLayout.@"565"), 16, 2),
+    rgb332 = definePixelFormatEnum(.packed8, PackedOrder.xrgb, @backingInt(PackedLayout.@"332"), 8, 1),
+    xrgb4444 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @backingInt(PackedLayout.@"4444"), 12, 2),
+    xbgr4444 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @backingInt(PackedLayout.@"4444"), 12, 2),
+    xrgb1555 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @backingInt(PackedLayout.@"1555"), 15, 2),
+    xbgr1555 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @backingInt(PackedLayout.@"1555"), 15, 2),
+    argb4444 = definePixelFormatEnum(.packed16, PackedOrder.argb, @backingInt(PackedLayout.@"4444"), 16, 2),
+    rgba4444 = definePixelFormatEnum(.packed16, PackedOrder.rgba, @backingInt(PackedLayout.@"4444"), 16, 2),
+    abgr4444 = definePixelFormatEnum(.packed16, PackedOrder.abgr, @backingInt(PackedLayout.@"4444"), 16, 2),
+    bgra4444 = definePixelFormatEnum(.packed16, PackedOrder.bgra, @backingInt(PackedLayout.@"4444"), 16, 2),
+    argb1555 = definePixelFormatEnum(.packed16, PackedOrder.argb, @backingInt(PackedLayout.@"1555"), 16, 2),
+    rgba5551 = definePixelFormatEnum(.packed16, PackedOrder.rgba, @backingInt(PackedLayout.@"5551"), 16, 2),
+    abgr1555 = definePixelFormatEnum(.packed16, PackedOrder.abgr, @backingInt(PackedLayout.@"1555"), 16, 2),
+    bgra5551 = definePixelFormatEnum(.packed16, PackedOrder.bgra, @backingInt(PackedLayout.@"5551"), 16, 2),
+    rgb565 = definePixelFormatEnum(.packed16, PackedOrder.xrgb, @backingInt(PackedLayout.@"565"), 16, 2),
+    bgr565 = definePixelFormatEnum(.packed16, PackedOrder.xbgr, @backingInt(PackedLayout.@"565"), 16, 2),
     rgb24 = definePixelFormatEnum(.arrayu8, ArrayOrder.rgb, 0, 24, 3),
     bgr24 = definePixelFormatEnum(.arrayu8, ArrayOrder.bgr, 0, 24, 3),
-    xrgb8888 = definePixelFormatEnum(.packed32, PackedOrder.xrgb, @intFromEnum(PackedLayout.@"8888"), 24, 4),
-    rgbx8888 = definePixelFormatEnum(.packed32, PackedOrder.rgbx, @intFromEnum(PackedLayout.@"8888"), 24, 4),
-    xbgr8888 = definePixelFormatEnum(.packed32, PackedOrder.xbgr, @intFromEnum(PackedLayout.@"8888"), 24, 4),
-    bgrx8888 = definePixelFormatEnum(.packed32, PackedOrder.bgrx, @intFromEnum(PackedLayout.@"8888"), 24, 4),
-    argb8888 = definePixelFormatEnum(.packed32, PackedOrder.argb, @intFromEnum(PackedLayout.@"8888"), 32, 4),
-    rgba8888 = definePixelFormatEnum(.packed32, PackedOrder.rgba, @intFromEnum(PackedLayout.@"8888"), 32, 4),
-    abgr8888 = definePixelFormatEnum(.packed32, PackedOrder.abgr, @intFromEnum(PackedLayout.@"8888"), 32, 4),
-    bgra8888 = definePixelFormatEnum(.packed32, PackedOrder.bgra, @intFromEnum(PackedLayout.@"8888"), 32, 4),
-    argb2101010 = definePixelFormatEnum(.packed32, PackedOrder.argb, @intFromEnum(PackedLayout.@"2101010"), 32, 4),
+    xrgb8888 = definePixelFormatEnum(.packed32, PackedOrder.xrgb, @backingInt(PackedLayout.@"8888"), 24, 4),
+    rgbx8888 = definePixelFormatEnum(.packed32, PackedOrder.rgbx, @backingInt(PackedLayout.@"8888"), 24, 4),
+    xbgr8888 = definePixelFormatEnum(.packed32, PackedOrder.xbgr, @backingInt(PackedLayout.@"8888"), 24, 4),
+    bgrx8888 = definePixelFormatEnum(.packed32, PackedOrder.bgrx, @backingInt(PackedLayout.@"8888"), 24, 4),
+    argb8888 = definePixelFormatEnum(.packed32, PackedOrder.argb, @backingInt(PackedLayout.@"8888"), 32, 4),
+    rgba8888 = definePixelFormatEnum(.packed32, PackedOrder.rgba, @backingInt(PackedLayout.@"8888"), 32, 4),
+    abgr8888 = definePixelFormatEnum(.packed32, PackedOrder.abgr, @backingInt(PackedLayout.@"8888"), 32, 4),
+    bgra8888 = definePixelFormatEnum(.packed32, PackedOrder.bgra, @backingInt(PackedLayout.@"8888"), 32, 4),
+    argb2101010 = definePixelFormatEnum(.packed32, PackedOrder.argb, @backingInt(PackedLayout.@"2101010"), 32, 4),
 };
 
 pub const Color = extern struct {
@@ -2598,7 +2598,7 @@ pub const Keycode = enum(u32) {
     pub const SCANCODE_MASK: u32 = 1 << 30;
 
     pub inline fn fromScancode(scancode: Scancode) Keycode {
-        return @enumFromInt(SCANCODE_TO_KEYCODE(@intFromEnum(scancode)));
+        return @fromBackingInt(@intCast(SCANCODE_TO_KEYCODE(@backingInt(scancode))));
     }
 
     unknown = 0,
@@ -2677,179 +2677,179 @@ pub const Keycode = enum(u32) {
     tilde = '~',
     delete = '\x7f',
     plusminus = '\x81',
-    capslock = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.capslock)),
-    f1 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f1)),
-    f2 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f2)),
-    f3 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f3)),
-    f4 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f4)),
-    f5 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f5)),
-    f6 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f6)),
-    f7 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f7)),
-    f8 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f8)),
-    f9 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f9)),
-    f10 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f10)),
-    f11 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f11)),
-    f12 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f12)),
-    printscreen = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.printscreen)),
-    scrolllock = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.scrolllock)),
-    pause = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.pause)),
-    insert = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.insert)),
-    home = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.home)),
-    pageup = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.pageup)),
-    end = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.end)),
-    pagedown = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.pagedown)),
-    right = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.right)),
-    left = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.left)),
-    down = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.down)),
-    up = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.up)),
-    numlockclear = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.numlockclear)),
-    kp_divide = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_divide)),
-    kp_multiply = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_multiply)),
-    kp_minus = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_minus)),
-    kp_plus = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_plus)),
-    kp_enter = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_enter)),
-    kp_1 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_1)),
-    kp_2 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_2)),
-    kp_3 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_3)),
-    kp_4 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_4)),
-    kp_5 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_5)),
-    kp_6 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_6)),
-    kp_7 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_7)),
-    kp_8 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_8)),
-    kp_9 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_9)),
-    kp_0 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_0)),
-    kp_period = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_period)),
-    application = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.application)),
-    power = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.power)),
-    kp_equals = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_equals)),
-    f13 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f13)),
-    f14 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f14)),
-    f15 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f15)),
-    f16 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f16)),
-    f17 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f17)),
-    f18 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f18)),
-    f19 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f19)),
-    f20 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f20)),
-    f21 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f21)),
-    f22 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f22)),
-    f23 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f23)),
-    f24 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.f24)),
-    execute = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.execute)),
-    help = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.help)),
-    menu = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.menu)),
-    select = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.select)),
-    stop = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.stop)),
-    again = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.again)),
-    undo = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.undo)),
-    cut = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.cut)),
-    copy = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.copy)),
-    paste = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.paste)),
-    find = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.find)),
-    mute = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.mute)),
-    volumeup = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.volumeup)),
-    volumedown = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.volumedown)),
-    kp_comma = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_comma)),
-    kp_equalsas400 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_equalsas400)),
-    alterase = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.alterase)),
-    sysreq = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.sysreq)),
-    cancel = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.cancel)),
-    clear = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.clear)),
-    prior = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.prior)),
-    return2 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.return2)),
-    separator = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.separator)),
-    out = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.out)),
-    oper = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.oper)),
-    clearagain = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.clearagain)),
-    crsel = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.crsel)),
-    exsel = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.exsel)),
-    kp_00 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_00)),
-    kp_000 = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_000)),
-    thousandsseparator = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.thousandsseparator)),
-    decimalseparator = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.decimalseparator)),
-    currencyunit = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.currencyunit)),
-    currencysubunit = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.currencysubunit)),
-    kp_leftparen = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_leftparen)),
-    kp_rightparen = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_rightparen)),
-    kp_leftbrace = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_leftbrace)),
-    kp_rightbrace = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_rightbrace)),
-    kp_tab = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_tab)),
-    kp_backspace = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_backspace)),
-    kp_a = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_a)),
-    kp_b = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_b)),
-    kp_c = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_c)),
-    kp_d = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_d)),
-    kp_e = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_e)),
-    kp_f = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_f)),
-    kp_xor = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_xor)),
-    kp_power = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_power)),
-    kp_percent = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_percent)),
-    kp_less = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_less)),
-    kp_greater = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_greater)),
-    kp_ampersand = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_ampersand)),
-    kp_dblampersand = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_dblampersand)),
-    kp_verticalbar = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_verticalbar)),
-    kp_dblverticalbar = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_dblverticalbar)),
-    kp_colon = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_colon)),
-    kp_hash = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_hash)),
-    kp_space = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_space)),
-    kp_at = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_at)),
-    kp_exclam = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_exclam)),
-    kp_memstore = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memstore)),
-    kp_memrecall = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memrecall)),
-    kp_memclear = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memclear)),
-    kp_memadd = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memadd)),
-    kp_memsubtract = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memsubtract)),
-    kp_memmultiply = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memmultiply)),
-    kp_memdivide = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_memdivide)),
-    kp_plusminus = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_plusminus)),
-    kp_clear = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_clear)),
-    kp_clearentry = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_clearentry)),
-    kp_binary = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_binary)),
-    kp_octal = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_octal)),
-    kp_decimal = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_decimal)),
-    kp_hexadecimal = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.kp_hexadecimal)),
-    lctrl = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.lctrl)),
-    lshift = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.lshift)),
-    lalt = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.lalt)),
-    lgui = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.lgui)),
-    rctrl = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.rctrl)),
-    rshift = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.rshift)),
-    ralt = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ralt)),
-    rgui = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.rgui)),
-    mode = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.mode)),
-    sleep = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.sleep)),
-    wake = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.wake)),
-    channel_increment = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.channel_increment)),
-    channel_decrement = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.channel_decrement)),
-    media_play = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_play)),
-    media_pause = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_pause)),
-    media_record = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_record)),
-    media_fast_forward = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_fast_forward)),
-    media_rewind = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_rewind)),
-    media_next_track = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_next_track)),
-    media_previous_track = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_previous_track)),
-    media_stop = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_stop)),
-    media_eject = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_eject)),
-    media_play_pause = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_play_pause)),
-    media_select = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.media_select)),
-    ac_new = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_new)),
-    ac_open = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_open)),
-    ac_close = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_close)),
-    ac_exit = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_exit)),
-    ac_save = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_save)),
-    ac_print = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_print)),
-    ac_properties = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_properties)),
-    ac_search = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_search)),
-    ac_home = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_home)),
-    ac_back = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_back)),
-    ac_forward = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_forward)),
-    ac_stop = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_stop)),
-    ac_refresh = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_refresh)),
-    ac_bookmarks = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.ac_bookmarks)),
-    softleft = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.softleft)),
-    softright = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.softright)),
-    call = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.call)),
-    endcall = SCANCODE_TO_KEYCODE(@intFromEnum(Scancode.endcall)),
+    capslock = SCANCODE_TO_KEYCODE(@backingInt(Scancode.capslock)),
+    f1 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f1)),
+    f2 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f2)),
+    f3 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f3)),
+    f4 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f4)),
+    f5 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f5)),
+    f6 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f6)),
+    f7 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f7)),
+    f8 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f8)),
+    f9 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f9)),
+    f10 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f10)),
+    f11 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f11)),
+    f12 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f12)),
+    printscreen = SCANCODE_TO_KEYCODE(@backingInt(Scancode.printscreen)),
+    scrolllock = SCANCODE_TO_KEYCODE(@backingInt(Scancode.scrolllock)),
+    pause = SCANCODE_TO_KEYCODE(@backingInt(Scancode.pause)),
+    insert = SCANCODE_TO_KEYCODE(@backingInt(Scancode.insert)),
+    home = SCANCODE_TO_KEYCODE(@backingInt(Scancode.home)),
+    pageup = SCANCODE_TO_KEYCODE(@backingInt(Scancode.pageup)),
+    end = SCANCODE_TO_KEYCODE(@backingInt(Scancode.end)),
+    pagedown = SCANCODE_TO_KEYCODE(@backingInt(Scancode.pagedown)),
+    right = SCANCODE_TO_KEYCODE(@backingInt(Scancode.right)),
+    left = SCANCODE_TO_KEYCODE(@backingInt(Scancode.left)),
+    down = SCANCODE_TO_KEYCODE(@backingInt(Scancode.down)),
+    up = SCANCODE_TO_KEYCODE(@backingInt(Scancode.up)),
+    numlockclear = SCANCODE_TO_KEYCODE(@backingInt(Scancode.numlockclear)),
+    kp_divide = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_divide)),
+    kp_multiply = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_multiply)),
+    kp_minus = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_minus)),
+    kp_plus = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_plus)),
+    kp_enter = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_enter)),
+    kp_1 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_1)),
+    kp_2 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_2)),
+    kp_3 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_3)),
+    kp_4 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_4)),
+    kp_5 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_5)),
+    kp_6 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_6)),
+    kp_7 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_7)),
+    kp_8 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_8)),
+    kp_9 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_9)),
+    kp_0 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_0)),
+    kp_period = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_period)),
+    application = SCANCODE_TO_KEYCODE(@backingInt(Scancode.application)),
+    power = SCANCODE_TO_KEYCODE(@backingInt(Scancode.power)),
+    kp_equals = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_equals)),
+    f13 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f13)),
+    f14 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f14)),
+    f15 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f15)),
+    f16 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f16)),
+    f17 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f17)),
+    f18 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f18)),
+    f19 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f19)),
+    f20 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f20)),
+    f21 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f21)),
+    f22 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f22)),
+    f23 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f23)),
+    f24 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.f24)),
+    execute = SCANCODE_TO_KEYCODE(@backingInt(Scancode.execute)),
+    help = SCANCODE_TO_KEYCODE(@backingInt(Scancode.help)),
+    menu = SCANCODE_TO_KEYCODE(@backingInt(Scancode.menu)),
+    select = SCANCODE_TO_KEYCODE(@backingInt(Scancode.select)),
+    stop = SCANCODE_TO_KEYCODE(@backingInt(Scancode.stop)),
+    again = SCANCODE_TO_KEYCODE(@backingInt(Scancode.again)),
+    undo = SCANCODE_TO_KEYCODE(@backingInt(Scancode.undo)),
+    cut = SCANCODE_TO_KEYCODE(@backingInt(Scancode.cut)),
+    copy = SCANCODE_TO_KEYCODE(@backingInt(Scancode.copy)),
+    paste = SCANCODE_TO_KEYCODE(@backingInt(Scancode.paste)),
+    find = SCANCODE_TO_KEYCODE(@backingInt(Scancode.find)),
+    mute = SCANCODE_TO_KEYCODE(@backingInt(Scancode.mute)),
+    volumeup = SCANCODE_TO_KEYCODE(@backingInt(Scancode.volumeup)),
+    volumedown = SCANCODE_TO_KEYCODE(@backingInt(Scancode.volumedown)),
+    kp_comma = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_comma)),
+    kp_equalsas400 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_equalsas400)),
+    alterase = SCANCODE_TO_KEYCODE(@backingInt(Scancode.alterase)),
+    sysreq = SCANCODE_TO_KEYCODE(@backingInt(Scancode.sysreq)),
+    cancel = SCANCODE_TO_KEYCODE(@backingInt(Scancode.cancel)),
+    clear = SCANCODE_TO_KEYCODE(@backingInt(Scancode.clear)),
+    prior = SCANCODE_TO_KEYCODE(@backingInt(Scancode.prior)),
+    return2 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.return2)),
+    separator = SCANCODE_TO_KEYCODE(@backingInt(Scancode.separator)),
+    out = SCANCODE_TO_KEYCODE(@backingInt(Scancode.out)),
+    oper = SCANCODE_TO_KEYCODE(@backingInt(Scancode.oper)),
+    clearagain = SCANCODE_TO_KEYCODE(@backingInt(Scancode.clearagain)),
+    crsel = SCANCODE_TO_KEYCODE(@backingInt(Scancode.crsel)),
+    exsel = SCANCODE_TO_KEYCODE(@backingInt(Scancode.exsel)),
+    kp_00 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_00)),
+    kp_000 = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_000)),
+    thousandsseparator = SCANCODE_TO_KEYCODE(@backingInt(Scancode.thousandsseparator)),
+    decimalseparator = SCANCODE_TO_KEYCODE(@backingInt(Scancode.decimalseparator)),
+    currencyunit = SCANCODE_TO_KEYCODE(@backingInt(Scancode.currencyunit)),
+    currencysubunit = SCANCODE_TO_KEYCODE(@backingInt(Scancode.currencysubunit)),
+    kp_leftparen = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_leftparen)),
+    kp_rightparen = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_rightparen)),
+    kp_leftbrace = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_leftbrace)),
+    kp_rightbrace = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_rightbrace)),
+    kp_tab = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_tab)),
+    kp_backspace = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_backspace)),
+    kp_a = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_a)),
+    kp_b = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_b)),
+    kp_c = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_c)),
+    kp_d = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_d)),
+    kp_e = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_e)),
+    kp_f = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_f)),
+    kp_xor = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_xor)),
+    kp_power = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_power)),
+    kp_percent = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_percent)),
+    kp_less = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_less)),
+    kp_greater = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_greater)),
+    kp_ampersand = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_ampersand)),
+    kp_dblampersand = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_dblampersand)),
+    kp_verticalbar = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_verticalbar)),
+    kp_dblverticalbar = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_dblverticalbar)),
+    kp_colon = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_colon)),
+    kp_hash = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_hash)),
+    kp_space = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_space)),
+    kp_at = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_at)),
+    kp_exclam = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_exclam)),
+    kp_memstore = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_memstore)),
+    kp_memrecall = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_memrecall)),
+    kp_memclear = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_memclear)),
+    kp_memadd = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_memadd)),
+    kp_memsubtract = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_memsubtract)),
+    kp_memmultiply = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_memmultiply)),
+    kp_memdivide = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_memdivide)),
+    kp_plusminus = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_plusminus)),
+    kp_clear = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_clear)),
+    kp_clearentry = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_clearentry)),
+    kp_binary = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_binary)),
+    kp_octal = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_octal)),
+    kp_decimal = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_decimal)),
+    kp_hexadecimal = SCANCODE_TO_KEYCODE(@backingInt(Scancode.kp_hexadecimal)),
+    lctrl = SCANCODE_TO_KEYCODE(@backingInt(Scancode.lctrl)),
+    lshift = SCANCODE_TO_KEYCODE(@backingInt(Scancode.lshift)),
+    lalt = SCANCODE_TO_KEYCODE(@backingInt(Scancode.lalt)),
+    lgui = SCANCODE_TO_KEYCODE(@backingInt(Scancode.lgui)),
+    rctrl = SCANCODE_TO_KEYCODE(@backingInt(Scancode.rctrl)),
+    rshift = SCANCODE_TO_KEYCODE(@backingInt(Scancode.rshift)),
+    ralt = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ralt)),
+    rgui = SCANCODE_TO_KEYCODE(@backingInt(Scancode.rgui)),
+    mode = SCANCODE_TO_KEYCODE(@backingInt(Scancode.mode)),
+    sleep = SCANCODE_TO_KEYCODE(@backingInt(Scancode.sleep)),
+    wake = SCANCODE_TO_KEYCODE(@backingInt(Scancode.wake)),
+    channel_increment = SCANCODE_TO_KEYCODE(@backingInt(Scancode.channel_increment)),
+    channel_decrement = SCANCODE_TO_KEYCODE(@backingInt(Scancode.channel_decrement)),
+    media_play = SCANCODE_TO_KEYCODE(@backingInt(Scancode.media_play)),
+    media_pause = SCANCODE_TO_KEYCODE(@backingInt(Scancode.media_pause)),
+    media_record = SCANCODE_TO_KEYCODE(@backingInt(Scancode.media_record)),
+    media_fast_forward = SCANCODE_TO_KEYCODE(@backingInt(Scancode.media_fast_forward)),
+    media_rewind = SCANCODE_TO_KEYCODE(@backingInt(Scancode.media_rewind)),
+    media_next_track = SCANCODE_TO_KEYCODE(@backingInt(Scancode.media_next_track)),
+    media_previous_track = SCANCODE_TO_KEYCODE(@backingInt(Scancode.media_previous_track)),
+    media_stop = SCANCODE_TO_KEYCODE(@backingInt(Scancode.media_stop)),
+    media_eject = SCANCODE_TO_KEYCODE(@backingInt(Scancode.media_eject)),
+    media_play_pause = SCANCODE_TO_KEYCODE(@backingInt(Scancode.media_play_pause)),
+    media_select = SCANCODE_TO_KEYCODE(@backingInt(Scancode.media_select)),
+    ac_new = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_new)),
+    ac_open = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_open)),
+    ac_close = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_close)),
+    ac_exit = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_exit)),
+    ac_save = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_save)),
+    ac_print = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_print)),
+    ac_properties = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_properties)),
+    ac_search = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_search)),
+    ac_home = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_home)),
+    ac_back = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_back)),
+    ac_forward = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_forward)),
+    ac_stop = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_stop)),
+    ac_refresh = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_refresh)),
+    ac_bookmarks = SCANCODE_TO_KEYCODE(@backingInt(Scancode.ac_bookmarks)),
+    softleft = SCANCODE_TO_KEYCODE(@backingInt(Scancode.softleft)),
+    softright = SCANCODE_TO_KEYCODE(@backingInt(Scancode.softright)),
+    call = SCANCODE_TO_KEYCODE(@backingInt(Scancode.call)),
+    endcall = SCANCODE_TO_KEYCODE(@backingInt(Scancode.endcall)),
     left_tab = 0x20000001,
     level5_shift = 0x20000002,
     multi_key_compose = 0x20000003,
@@ -3389,23 +3389,23 @@ pub const AudioFormat = enum(c_uint) {
 };
 
 pub inline fn AUDIO_BITSIZE(format: AudioFormat) c_uint {
-    return @intFromEnum(format) & AUDIO_MASK_BITSIZE;
+    return @backingInt(format) & AUDIO_MASK_BITSIZE;
 }
 
 pub inline fn AUDIO_BYTESIZE(format: AudioFormat) c_uint {
-    return AUDIO_BITSIZE(@intFromEnum(format)) / 8;
+    return AUDIO_BITSIZE(@backingInt(format)) / 8;
 }
 
 pub inline fn AUDIO_ISFLOAT(format: AudioFormat) bool {
-    return (@intFromEnum(format) & AUDIO_MASK_FLOAT) != 0;
+    return (@backingInt(format) & AUDIO_MASK_FLOAT) != 0;
 }
 
 pub inline fn AUDIO_ISBIGENDIAN(format: AudioFormat) bool {
-    return (@intFromEnum(format) & AUDIO_MASK_BIG_ENDIAN) != 0;
+    return (@backingInt(format) & AUDIO_MASK_BIG_ENDIAN) != 0;
 }
 
 pub inline fn AUDIO_ISSIGNED(format: AudioFormat) bool {
-    return (@intFromEnum(format) & AUDIO_MASK_SIGNED) != 0;
+    return (@backingInt(format) & AUDIO_MASK_SIGNED) != 0;
 }
 
 pub inline fn AUDIO_ISINT(format: AudioFormat) bool {
@@ -4560,7 +4560,7 @@ pub const GPUSamplerCreateInfo = extern struct {
     padding2: u8 = 0,
 
     /// A properties ID for extensions. Should be 0 if no extensions are needed.
-    props: PropertiesID = @enumFromInt(0),
+    props: PropertiesID = @fromBackingInt(@intCast(0)),
 };
 
 pub const GPUVertexBufferDescription = extern struct {
@@ -4652,7 +4652,7 @@ pub const GPUShaderCreateInfo = extern struct {
     num_uniform_buffers: u32,
 
     /// A properties ID for extensions. Should be 0 if no extensions are needed.
-    props: PropertiesID = @enumFromInt(0),
+    props: PropertiesID = @fromBackingInt(@intCast(0)),
 };
 
 pub const GPUTextureCreateInfo = extern struct {
@@ -4674,7 +4674,7 @@ pub const GPUTextureCreateInfo = extern struct {
     sample_count: GPUSampleCount,
 
     /// A properties ID for extensions. Should be 0 if no extensions are needed.
-    props: PropertiesID = @enumFromInt(0),
+    props: PropertiesID = @fromBackingInt(@intCast(0)),
 };
 
 pub const GPUBufferCreateInfo = extern struct {
@@ -4684,7 +4684,7 @@ pub const GPUBufferCreateInfo = extern struct {
     size: u32,
 
     /// A properties ID for extensions. Should be 0 if no extensions are needed.
-    props: PropertiesID = @enumFromInt(0),
+    props: PropertiesID = @fromBackingInt(@intCast(0)),
 };
 
 pub const GPUTransferBufferCreateInfo = extern struct {
@@ -4694,7 +4694,7 @@ pub const GPUTransferBufferCreateInfo = extern struct {
     size: u32,
 
     /// A properties ID for extensions. Should be 0 if no extensions are needed.
-    props: PropertiesID = @enumFromInt(0),
+    props: PropertiesID = @fromBackingInt(@intCast(0)),
 };
 
 pub const GPURasterizerState = extern struct {
@@ -4796,7 +4796,7 @@ pub const GPUGraphicsPipelineCreateInfo = extern struct {
     target_info: GPUGraphicsPipelineTargetInfo,
 
     /// A properties ID for extensions. Should be 0 if no extensions are needed.
-    props: PropertiesID = @enumFromInt(0),
+    props: PropertiesID = @fromBackingInt(@intCast(0)),
 };
 
 pub const GPUComputePipelineCreateInfo = extern struct {
@@ -4828,7 +4828,7 @@ pub const GPUComputePipelineCreateInfo = extern struct {
     threadcount_z: u32,
 
     /// A properties ID for extensions. Should be 0 if no extensions are needed.
-    props: PropertiesID = @enumFromInt(0),
+    props: PropertiesID = @fromBackingInt(@intCast(0)),
 };
 
 pub const GPUColorTargetInfo = extern struct {
