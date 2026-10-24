@@ -1,6 +1,6 @@
-const builtin = @import("builtin");
 const std = @import("std");
 const assert = std.debug.assert;
+const builtin = @import("builtin");
 
 pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
@@ -75,7 +75,6 @@ pub fn build(b: *std.Build) void {
             link_SDL3_libs_testing(zsdl3_tests);
             prebuilt_sdl3.addLibraryPathsTo(zsdl3_tests);
         }
-
     }
 }
 
@@ -392,9 +391,10 @@ fn addTests(
 
     const run = b.addRunArtifact(tests);
     if (target.result.os.tag == .windows) {
-        run.setCwd(.{
-            .cwd_relative = b.getInstallPath(.bin, ""),
-        });
+        run.setCwd(.{ .relative = .{
+            .base = .install_bin,
+            .sub_path = "",
+        } });
     }
 
     if (run_after) |s| run.step.dependOn(s);
