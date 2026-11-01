@@ -2880,6 +2880,7 @@ pub const Keymod = enum(u16) {
     pub const shift: u16 = lshift | rshift;
     pub const alt: u16 = lalt | ralt;
     pub const gui: u16 = lgui | rgui;
+    _,
 };
 
 pub fn getKeyboardState() []const bool {
